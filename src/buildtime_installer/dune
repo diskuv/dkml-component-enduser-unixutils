@@ -1,0 +1,10 @@
+(library
+ (public_name dkml-component-unixutils)
+ (name dkml_component_unixutils)
+ (libraries dkml-install.register dune-site bos logs))
+
+(plugin
+ (name dkml-install-plugin-unixutils)
+ (libraries dkml-component-unixutils)
+ (site
+  (dkml-install-runner plugins)))

@@ -1,0 +1,11 @@
+(executable
+ (name install)
+ (public_name install)
+ (modes
+  (byte exe))
+ (libraries bos))
+
+(install
+ (section share)
+ (files
+  (install.bc as staging-files/generic/install.bc)))
