@@ -1,10 +1,11 @@
 (library
- (public_name dkml-component-unixutils)
- (name dkml_component_unixutils)
+ (public_name dkml-component-enduser-unixutils)
+ (name dkml_component_enduser_unixutils)
  (libraries dkml-install.register dune-site bos logs))
 
 (plugin
- (name dkml-install-plugin-unixutils)
- (libraries dkml-component-unixutils)
+ ; plugin name must be globally unique, and not clash with a library name
+ (name dkml-plugin-enduser-unixutils)
+ (libraries dkml-component-enduser-unixutils)
  (site
   (dkml-install-runner plugins)))
