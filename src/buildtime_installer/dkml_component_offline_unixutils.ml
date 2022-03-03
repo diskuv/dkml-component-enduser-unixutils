@@ -1,0 +1,60 @@
+open Dkml_install_api
+open Dkml_install_register
+open Bos
+
+let execute_install ctx =
+  Logs.info (fun m ->
+      m "The install location is: %a" Fpath.pp
+        (ctx.Context.path_eval "%{prefix}%"));
+  Logs.info (fun m ->
+      m "The detected host ABI is: %a" Context.Abi_v2.pp ctx.Context.host_abi_v2);
+  let ocamlrun =
+    ctx.Context.path_eval "%{staging-ocamlrun:share}%/generic/bin/ocamlrun"
+  in
+  if Sys.win32 then
+    log_spawn_and_raise
+      Cmd.(
+        v (Fpath.to_string ocamlrun)
+        % Fpath.to_string
+            (ctx.Context.path_eval "%{staging-unixutils:share}%/generic/windows_install.bc")
+        %% Log_config.to_args ctx.Context.log_config
+        % "--tmp-dir"
+        % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
+        % "--target-msys2-dir"
+        % Fpath.to_string (ctx.Context.path_eval "%{prefix}%/tools/MSYS2")
+        % "--target-sh"
+        % Fpath.to_string
+            (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh.exe")
+        % "--curl-exe"
+        % Fpath.to_string
+            (ctx.Context.path_eval "%{staging-curl:share}%/generic/bin/curl.exe")
+        %%
+        match ctx.Context.host_abi_v2 with
+        | Windows_x86 -> v "--32-bit"
+        | _ -> empty)
+  else
+    log_spawn_and_raise
+      Cmd.(
+        v (Fpath.to_string ocamlrun)
+        % Fpath.to_string
+            (ctx.Context.path_eval "%{staging-unixutils:share}%/generic/unix_install.bc")
+        % "-target-sh"
+        % Fpath.to_string
+            (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh"))
+
+let () =
+  let reg = Component_registry.get () in
+  Component_registry.add_component reg
+    (module struct
+      include Default_component_config
+
+      let component_name = "offline-unixutils"
+
+      let depends_on = [ "staging-ocamlrun"; "staging-unixutils" ]
+
+      let install_user_subcommand ~component_name:_ ~subcommand_name ~ctx_t =
+        let doc = "Offline install Unix utilities" in
+        Result.ok
+        @@ Cmdliner.Term.
+             (const execute_install $ ctx_t, info subcommand_name ~doc)
+    end)

@@ -16,7 +16,8 @@ let execute_install ctx =
       Cmd.(
         v (Fpath.to_string ocamlrun)
         % Fpath.to_string
-            (ctx.Context.path_eval "%{_:share}%/generic/windows_install.bc")
+            (ctx.Context.path_eval
+               "%{staging-unixutils:share}%/generic/windows_install.bc")
         %% Log_config.to_args ctx.Context.log_config
         % "--tmp-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
@@ -37,15 +38,11 @@ let execute_install ctx =
       Cmd.(
         v (Fpath.to_string ocamlrun)
         % Fpath.to_string
-            (ctx.Context.path_eval "%{_:share}%/generic/unix_install.bc")
+            (ctx.Context.path_eval
+               "%{staging-unixutils:share}%/generic/unix_install.bc")
         % "-target-sh"
         % Fpath.to_string
-            (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh"));
-  log_spawn_and_raise
-    Cmd.(
-      v (Fpath.to_string ocamlrun)
-      % Fpath.to_string
-          (ctx.Context.path_eval "%{_:share}%/generic/common_install.bc"))
+            (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh"))
 
 let () =
   let reg = Component_registry.get () in
@@ -53,12 +50,13 @@ let () =
     (module struct
       include Default_component_config
 
-      let component_name = "enduser-unixutils"
+      let component_name = "network-unixutils"
 
-      let depends_on = [ "staging-ocamlrun"; "staging-curl" ]
+      let depends_on =
+        [ "staging-ocamlrun"; "staging-curl"; "staging-unixutils" ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~ctx_t =
-        let doc = "Install Unix utilities" in
+        let doc = "Install Unix utilities over the network" in
         Result.ok
         @@ Cmdliner.Term.
              (const execute_install $ ctx_t, info subcommand_name ~doc)

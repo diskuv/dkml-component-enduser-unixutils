@@ -1,4 +1,5 @@
 (executable
+ (package dkml-component-staging-unixutils)
  (name unix_install)
  (public_name unix_install)
  (modes
@@ -6,6 +7,7 @@
  (libraries bos))
 
 (install
+ (package dkml-component-staging-unixutils)
  (section share)
  (files
   (unix_install.bc as staging-files/generic/unix_install.bc)))

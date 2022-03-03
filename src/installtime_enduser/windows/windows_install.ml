@@ -3,7 +3,12 @@ open Cmdliner
 module Installer = struct
   open Bos
 
-  let ( let* ) = Rresult.R.bind
+  let ( let* ) r f =
+    match r with
+    | Ok v -> f v
+    | Error s ->
+        raise
+          (Dkml_install_api.Installation_error (Fmt.str "%a" Rresult.R.pp_msg s))
 
   let ( let+ ) f x = Rresult.R.map x f
 

@@ -1,12 +1,27 @@
 # unixutils 0.1.0
 
-The unixutils component provides common Unix utilities to all DKML
+The unixutils components provides common Unix utilities to all DKML
 installable platforms, including Windows.
 
 MSYS2 provides the Windows environment.
 
-This is a component that can be used with [dkml-install-api](https://diskuv.github.io/dkml-install-api/index.html)
+These components can be used with [dkml-install-api](https://diskuv.github.io/dkml-install-api/index.html)
 to generate installers.
+
+## Components
+
+### network-unixutils
+
+Network installation of Unix utilities. Pick this or `offline-unixutils`.
+
+### offline-unixutils
+
+Offline installation of Unix utilities. Pick this or `network-unixutils`.
+
+### staging-unixutils
+
+Internal shared bytecode between `network-unixutils` and `offline-unixutils`.
+You should never need to directly rely on this component.
 
 ## Utilities
 
