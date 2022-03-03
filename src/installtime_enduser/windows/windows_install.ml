@@ -56,11 +56,58 @@ module Installer = struct
         curl_exe;
       }
 
+  (* TODO: Place in separate installutils library (not API) *)
   let copy_file src dst =
     let* mode = OS.Path.Mode.get src in
     let* data = OS.File.read src in
     OS.File.write ~mode dst data
 
+  (* TODO: Place in separate installutils library (not API) *)
+  let chmod_plus_readwrite_dir dir =
+    let ( >>= ) = Result.bind in
+    let raise_fold_error fpath result =
+      Rresult.R.error_msgf
+        "@[A chmod u+rw directory operation errored out while visiting %a.@]@,\
+         @[  @[%a@]@]" Fpath.pp fpath
+        (Rresult.R.pp
+           ~ok:(Fmt.any "<unknown rmdir problem>")
+           ~error:Rresult.R.pp_msg)
+        result
+    in
+    let chmod_u_rw rel = function
+      | Error _ as e ->
+          (* no more chmod if we had an error *)
+          e
+      | Ok () ->
+          let path = Fpath.(dir // rel) in
+          let* mode = OS.Path.Mode.get path in
+          if mode land 0o600 <> 0o600 then
+            let+ () = OS.Path.Mode.set path (mode lor 0o600) in
+            ()
+          else Result.ok ()
+    in
+    OS.Path.fold ~err:raise_fold_error chmod_u_rw (Result.ok ()) [ dir ]
+    >>= function
+    | Ok () -> Result.ok ()
+    | Error s ->
+        Rresult.R.error_msg
+          (Fmt.str
+             "@[@[Failed to chmod u+rw the directory@]@[@ %a@]@ .@]@ @[%a@]"
+             Fpath.pp dir Rresult.R.pp_msg s)
+
+  (* TODO: Place in separate installutils library (not API) *)
+  let remove_dir ?verbose dir =
+    (* On Windows we need to get write access before you can delete the
+       file. *)
+    let* exists = OS.Path.exists dir in
+    if exists then (
+      if verbose = Some true then
+        Logs.info (fun m -> m "Removing directory %a" Fpath.pp dir);
+      let* () = chmod_plus_readwrite_dir dir in
+      OS.Dir.delete ~recurse:true dir)
+    else Result.ok ()
+
+  (* TODO: Place in separate installutils library (not API) *)
   let download_file { curl_exe; _ } url destfile expected_cksum =
     Logs.info (fun m -> m "Downloading %s" url);
     let rec helper ~redirects_remaining ~visited current_url =
@@ -84,7 +131,8 @@ module Installer = struct
                     no Location header"
                    url current_url)
           | false, Some redirect_location ->
-              Logs.debug (fun m -> m "Redirecting to: %s" redirect_location);
+              Logs.debug (fun m ->
+                  m "Redirecting download to: %s" redirect_location);
               helper ~redirects_remaining:(redirects_remaining - 1)
                 ~visited:(current_url :: visited) redirect_location)
       | Ok x ->
@@ -124,7 +172,7 @@ module Installer = struct
     in
     let target_msys2_fp = Fpath.v target_msys2_dir in
     (* Example: DELETE Z:\temp\prefix\tools\MSYS2 *)
-    let* () = OS.Dir.delete ~recurse:true target_msys2_fp in
+    let* () = remove_dir ~verbose:true target_msys2_fp in
     let destfile = Fpath.(v tmp_dir / "msys2.exe") in
     let* () = download_file t url destfile (Sha256.of_hex msys2_sha256) in
     match msys2_base with
@@ -137,7 +185,7 @@ module Installer = struct
         let target_msys2_extract_fp =
           Fpath.(target_msys2_parent_fp / msys2_basename)
         in
-        let* () = OS.Dir.delete ~recurse:true target_msys2_extract_fp in
+        let* () = remove_dir target_msys2_extract_fp in
         Dkml_install_api.log_spawn_and_raise
           Cmd.(
             v (Fpath.to_string destfile)
@@ -159,7 +207,7 @@ module Installer = struct
     let dest = Fpath.(target_dir / "msys-2.0.dll") in
     let* exists = OS.Path.exists dest in
     if exists then Result.ok ()
-    else copy_file Fpath.(msys2_dir / "bin" / "msys-2.0.dll") dest
+    else copy_file Fpath.(msys2_dir / "usr" / "bin" / "msys-2.0.dll") dest
 
   (** [install_sh ~target] makes a copy of /bin/dash.exe
       to [target], and adds msys-2.0.dll if not present. *)
@@ -174,7 +222,7 @@ module Installer = struct
              search
     | Some src_sh ->
         let target_dir = Fpath.parent target in
-        Unix.mkdir (Fpath.to_string target_dir) 0o750;
+        let* (_created : bool) = OS.Dir.create ~mode:0o750 target_dir in
         let* () = install_msys2_dll_in_targetdir ~msys2_dir ~target_dir in
         copy_file src_sh target
 
