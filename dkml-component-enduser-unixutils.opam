@@ -18,6 +18,7 @@ depends: [
   "dune" {>= "2.9" & >= "2.9"}
   "dune-site" {>= "2.9"}
   "curly" {= "0.2.1-windows-env"}
+  "sha" {>= "1.15.1"}
   "odoc" {with-doc}
 ]
 build: [

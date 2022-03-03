@@ -27,4 +27,5 @@
   ; Windows needs the 0.2.1-windows-dev patch which is only available in diskuv-opam-repository
   ; Try also:
   ; with-dkml opam pin add curly.0.2.1-windows-dev 'https://github.com/jonahbeckford/curly.git#windows-dev'
-  (curly (= 0.2.1-windows-env))))
+  (curly (= 0.2.1-windows-env))
+  (sha (>= 1.15.1))))

@@ -8,9 +8,6 @@ let execute_install ctx =
         (ctx.Context.path_eval "%{prefix}%"));
   Logs.info (fun m ->
       m "The detected host ABI is: %a" Context.Abi_v2.pp ctx.Context.host_abi_v2);
-  Logs.info (fun m ->
-      m "We can place temporary files in: %a" Fpath.pp
-        (ctx.Context.path_eval "%{tmp}%"));
   let ocamlrun =
     ctx.Context.path_eval "%{staging-ocamlrun:share}%/generic/bin/ocamlrun"
   in
@@ -20,17 +17,20 @@ let execute_install ctx =
         v (Fpath.to_string ocamlrun)
         % Fpath.to_string
             (ctx.Context.path_eval "%{_:share}%/generic/windows_install.bc")
-        % "-target-msys2-dir"
+        %% Log_config.to_args ctx.Context.log_config
+        % "--tmp-dir"
+        % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
+        % "--target-msys2-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{prefix}%/tools/MSYS2")
-        % "-target-sh"
+        % "--target-sh"
         % Fpath.to_string
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh.exe")
-        % "-curl-exe"
+        % "--curl-exe"
         % Fpath.to_string
             (ctx.Context.path_eval "%{staging-curl:share}%/generic/bin/curl.exe")
         %%
         match ctx.Context.host_abi_v2 with
-        | Windows_x86 -> v "-32bit"
+        | Windows_x86 -> v "--32-bit"
         | _ -> empty)
   else
     log_spawn_and_raise

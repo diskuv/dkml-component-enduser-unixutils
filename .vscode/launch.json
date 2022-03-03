@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "OCaml Debug: windows_install",
+            "type": "ocamlearlybird",
+            "request": "launch",
+            "program": "${workspaceFolder}/_build/default/src/installtime_enduser/windows/windows_install.bc",
+            "console": "internalConsole",
+            "stopOnEntry": true,
+            "yieldSteps": 1024,
+            "arguments": [
+                "Z:\\source\\dkml-install-api\\_opam\\share\\dkml-component-enduser-unixutils\\staging-files\\generic\\windows_install.bc",
+                "-target-msys2-dir",
+                "Z:\\temp\\prefix\\tools\\MSYS2",
+                "-target-sh",
+                "Z:\\temp\\prefix\\tools\\unixutils\\bin\\sh.exe",
+                "-curl-exe",
+                "Z:\\source\\dkml-install-api\\_opam\\share\\dkml-component-staging-curl\\staging-files\\generic\\bin\\curl.exe"
+            ]
+            // "onlyDebugGlob": "<${workspaceFolder}/**/*>"
+        }
+    ]
+}

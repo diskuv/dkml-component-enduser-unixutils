@@ -3,7 +3,16 @@
  (public_name windows_install)
  (modes
   (byte exe))
- (libraries bos curly logs.fmt fmt.tty))
+ (libraries
+  dkml-install.api
+  bos
+  curly
+  logs.cli
+  logs.fmt
+  fmt.cli
+  fmt.tty
+  cmdliner
+  sha))
 
 (install
  (section share)
