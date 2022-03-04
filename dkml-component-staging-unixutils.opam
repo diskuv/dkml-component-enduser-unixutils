@@ -13,6 +13,8 @@ bug-reports:
   "https://github.com/diskuv/dkml-component-enduser-unixutils/issues"
 depends: [
   "dune" {>= "2.9"}
+  "dkml-install" {>= "0.1.0"}
+  "dkml-install-runner" {>= "0.1.0"}
   "odoc" {with-doc}
 ]
 build: [

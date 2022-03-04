@@ -2,7 +2,7 @@
  (public_name dkml-component-staging-unixutils)
  (name dkml_component_staging_unixutils)
  (modules dkml_component_staging_unixutils)
- (libraries dkml-install.register dune-site bos logs))
+ (libraries dkml-install.register dune-site))
 
 (library
  (public_name dkml-component-network-unixutils)

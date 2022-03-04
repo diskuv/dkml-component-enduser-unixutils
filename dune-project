@@ -16,7 +16,10 @@
  (name dkml-component-staging-unixutils)
  (synopsis "Collection of end-user installers of common Unix utilities for all DKML installable platforms")
  (description
-  "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows"))
+  "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
+ (depends
+  (dkml-install (>= 0.1.0))
+  (dkml-install-runner (>= 0.1.0))))
 
 (package
  (name dkml-component-network-unixutils)
