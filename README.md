@@ -48,4 +48,4 @@ See [the Contributors section of dkml-install-api](https://github.com/diskuv/dkm
 
 ## Status
 
-[![Syntax check](https://github.com/diskuv/dkml-component-enduser-unixutils/actions/workflows/syntax.yml/badge.svg)](https://github.com/diskuv/dkml-component-enduser-unixutils/actions/workflows/syntax.yml)
+[![Syntax check](https://github.com/diskuv/dkml-component-unixutils/actions/workflows/syntax.yml/badge.svg)](https://github.com/diskuv/dkml-component-unixutils/actions/workflows/syntax.yml)
