@@ -7,7 +7,7 @@ let execute_install ctx =
       m "The install location is: %a" Fpath.pp
         (ctx.Context.path_eval "%{prefix}%"));
   Logs.info (fun m ->
-      m "The detected host ABI is: %a" Context.Abi_v2.pp ctx.Context.host_abi_v2);
+      m "The detected host ABI is: %s" (Context.Abi_v2.to_canonical_string ctx.Context.host_abi_v2));
   let ocamlrun =
     ctx.Context.path_eval "%{staging-ocamlrun:share}%/generic/bin/ocamlrun"
   in
