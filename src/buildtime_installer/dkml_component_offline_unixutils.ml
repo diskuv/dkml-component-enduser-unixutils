@@ -7,16 +7,15 @@ let execute_install ctx =
       m "The install location is: %a" Fpath.pp
         (ctx.Context.path_eval "%{prefix}%"));
   Logs.info (fun m ->
-      m "The detected host ABI is: %s" (Context.Abi_v2.to_canonical_string ctx.Context.host_abi_v2));
-  let ocamlrun =
-    ctx.Context.path_eval "%{staging-ocamlrun:share-abi}%/bin/ocamlrun"
-  in
-  if Sys.win32 then
-    log_spawn_and_raise
+      m "The detected host ABI is: %s"
+        (Context.Abi_v2.to_canonical_string ctx.Context.host_abi_v2));
+  if Context.Abi_v2.is_windows ctx.Context.host_abi_v2 then
+    Staging_ocamlrun_api.spawn_ocamlrun ctx
       Cmd.(
-        v (Fpath.to_string ocamlrun)
-        % Fpath.to_string
-            (ctx.Context.path_eval "%{staging-unixutils:share-generic}%/windows_install.bc")
+        v
+          (Fpath.to_string
+             (ctx.Context.path_eval
+                "%{staging-unixutils:share-generic}%/windows_install.bc"))
         %% Log_config.to_args ctx.Context.log_config
         % "--tmp-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
@@ -33,11 +32,12 @@ let execute_install ctx =
         | Windows_x86 -> v "--32-bit"
         | _ -> empty)
   else
-    log_spawn_and_raise
+    Staging_ocamlrun_api.spawn_ocamlrun ctx
       Cmd.(
-        v (Fpath.to_string ocamlrun)
-        % Fpath.to_string
-            (ctx.Context.path_eval "%{staging-unixutils:share-generic}%/unix_install.bc")
+        v
+          (Fpath.to_string
+             (ctx.Context.path_eval
+                "%{staging-unixutils:share-generic}%/unix_install.bc"))
         % "-target-sh"
         % Fpath.to_string
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh"))
