@@ -26,7 +26,7 @@ let execute_install ctx =
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh.exe")
         % "--curl-exe"
         % Fpath.to_string
-            (ctx.Context.path_eval "%{staging-curl:share-generic}%/bin/curl.exe")
+            (ctx.Context.path_eval "%{staging-curl:share-abi}%/bin/curl.exe")
         %%
         match ctx.Context.host_abi_v2 with
         | Windows_x86 -> v "--32-bit"
