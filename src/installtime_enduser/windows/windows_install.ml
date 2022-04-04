@@ -57,12 +57,6 @@ module Installer = struct
       }
 
   (* TODO: Place in separate installutils library (not API) *)
-  let copy_file src dst =
-    let* mode = OS.Path.Mode.get src in
-    let* data = OS.File.read src in
-    OS.File.write ~mode dst data
-
-  (* TODO: Place in separate installutils library (not API) *)
   let chmod_plus_readwrite_dir dir =
     let ( >>= ) = Result.bind in
     let raise_fold_error fpath result =
@@ -207,7 +201,11 @@ module Installer = struct
     let dest = Fpath.(target_dir / "msys-2.0.dll") in
     let* exists = OS.Path.exists dest in
     if exists then Result.ok ()
-    else copy_file Fpath.(msys2_dir / "usr" / "bin" / "msys-2.0.dll") dest
+    else
+      Rresult.R.error_to_msg ~pp_error:Fmt.string
+        (Diskuvbox.copy_file
+           ~src:Fpath.(msys2_dir / "usr" / "bin" / "msys-2.0.dll")
+           ~dst:dest ())
 
   (** [install_sh ~target] makes a copy of /bin/dash.exe
       to [target], and adds msys-2.0.dll if not present. *)
@@ -223,8 +221,9 @@ module Installer = struct
     | Some src_sh ->
         let target_dir = Fpath.parent target in
         let* (_created : bool) = OS.Dir.create ~mode:0o750 target_dir in
-        let* () = install_msys2_dll_in_targetdir ~msys2_dir ~target_dir in
-        copy_file src_sh target
+        Rresult.R.error_to_msg ~pp_error:Fmt.string
+          (let* () = install_msys2_dll_in_targetdir ~msys2_dir ~target_dir in
+           Diskuvbox.copy_file ~src:src_sh ~dst:target ())
 
   let install_utilities t =
     let target_msys2_dir = Fpath.v t.target_msys2_dir in

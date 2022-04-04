@@ -19,6 +19,7 @@ depends: [
   "dkml-install-runner" {>= "0.1.0"}
   "dune" {>= "2.9" & >= "2.9"}
   "dune-site" {>= "2.9"}
+  "diskuvbox" {>= "0.1.0"}
   "curly" {= "0.2.1-windows-env"}
   "sha" {>= "1.15.1"}
   "odoc" {with-doc}

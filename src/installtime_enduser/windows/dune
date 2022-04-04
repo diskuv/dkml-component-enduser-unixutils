@@ -6,6 +6,7 @@
   (byte exe))
  (libraries
   dkml-install.api
+  diskuvbox
   bos
   curly
   logs.cli
