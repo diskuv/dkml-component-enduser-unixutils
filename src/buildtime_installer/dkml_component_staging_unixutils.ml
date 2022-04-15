@@ -1,7 +1,7 @@
 open Dkml_install_api
 open Dkml_install_register
 
-let () =
+let register () =
   let reg = Component_registry.get () in
   Component_registry.add_component reg
     (module struct

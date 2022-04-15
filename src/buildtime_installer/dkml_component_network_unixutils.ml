@@ -42,7 +42,7 @@ let execute_install ctx =
         % Fpath.to_string
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh"))
 
-let () =
+let register () =
   let reg = Component_registry.get () in
   Component_registry.add_component reg
     (module struct
