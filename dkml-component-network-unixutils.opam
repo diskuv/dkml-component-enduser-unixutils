@@ -19,7 +19,7 @@ depends: [
   "dune" {>= "2.9" & >= "2.9"}
   "diskuvbox" {>= "0.1.0"}
   "curly" {= "0.2.1-windows-env"}
-  "sha" {>= "1.15.1"}
+  "digestif" {>= "1.0.1"}
   "odoc" {with-doc}
 ]
 build: [

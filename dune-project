@@ -36,7 +36,7 @@
   ; Try also:
   ; with-dkml opam pin add curly.0.2.1-windows-dev 'https://github.com/jonahbeckford/curly.git#windows-dev'
   (curly (= 0.2.1-windows-env))
-  (sha (>= 1.15.1))))
+  (digestif (>= 1.0.1))))
 
 (package
  (name dkml-component-offline-unixutils)

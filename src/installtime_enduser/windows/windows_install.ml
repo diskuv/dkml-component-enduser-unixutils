@@ -130,10 +130,10 @@ module Installer = struct
               helper ~redirects_remaining:(redirects_remaining - 1)
                 ~visited:(current_url :: visited) redirect_location)
       | Ok x ->
-          let actual_cksum = Sha256.string x.Curly.Response.body in
+          let actual_cksum = Digestif.SHA256.of_raw_string x.Curly.Response.body in
           (* Sha256.equal is buggy in at least 1.15.1! *)
-          let expected_cksum_hex = Sha256.to_hex expected_cksum in
-          let actual_cksum_hex = Sha256.to_hex actual_cksum in
+          let expected_cksum_hex = Digestif.SHA256.to_hex expected_cksum in
+          let actual_cksum_hex = Digestif.SHA256.to_hex actual_cksum in
           if expected_cksum_hex = actual_cksum_hex then
             let* (_created : bool) = OS.Dir.create (Fpath.parent destfile) in
             OS.File.write destfile x.Curly.Response.body
@@ -168,7 +168,7 @@ module Installer = struct
     (* Example: DELETE Z:\temp\prefix\tools\MSYS2 *)
     let* () = remove_dir ~verbose:true target_msys2_fp in
     let destfile = Fpath.(v tmp_dir / "msys2.exe") in
-    let* () = download_file t url destfile (Sha256.of_hex msys2_sha256) in
+    let* () = download_file t url destfile (Digestif.SHA256.of_hex msys2_sha256) in
     match msys2_base with
     | Base msys2_basename ->
         (* Example: Z:\temp\prefix\tools, MSYS2 *)
