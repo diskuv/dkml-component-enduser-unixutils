@@ -2,7 +2,7 @@
  (public_name dkml-component-staging-unixutils)
  (name dkml_component_staging_unixutils)
  (modules dkml_component_staging_unixutils)
- (libraries dkml-install.register dune-site))
+ (libraries dkml-install.register))
 
 (library
  (public_name dkml-component-network-unixutils)
@@ -10,7 +10,6 @@
  (modules dkml_component_network_unixutils)
  (libraries
   dkml-install.register
-  dune-site
   dkml-component-staging-ocamlrun.api
   bos
   logs))
@@ -21,31 +20,6 @@
  (modules dkml_component_offline_unixutils)
  (libraries
   dkml-install.register
-  dune-site
   dkml-component-staging-ocamlrun.api
   bos
   logs))
-
-(plugin
- ; plugin name must be globally unique, and not clash with a library name
- (name dkml-plugin-staging-unixutils)
- (package dkml-component-staging-unixutils)
- (libraries dkml-component-staging-unixutils)
- (site
-  (dkml-install-runner plugins)))
-
-(plugin
- ; plugin name must be globally unique, and not clash with a library name
- (name dkml-plugin-network-unixutils)
- (package dkml-component-network-unixutils)
- (libraries dkml-component-network-unixutils)
- (site
-  (dkml-install-runner plugins)))
-
-(plugin
- ; plugin name must be globally unique, and not clash with a library name
- (name dkml-plugin-offline-unixutils)
- (package dkml-component-offline-unixutils)
- (libraries dkml-component-offline-unixutils)
- (site
-  (dkml-install-runner plugins)))

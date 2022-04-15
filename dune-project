@@ -18,8 +18,7 @@
  (description
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
  (depends
-  (dkml-install (>= 0.1.0))
-  (dkml-install-runner (>= 0.1.0))))
+  (dkml-install (>= 0.1.0))))
 
 (package
  (name dkml-component-network-unixutils)
@@ -31,9 +30,7 @@
   (dkml-component-staging-ocamlrun (>= 4.12.1))
   (dkml-component-staging-curl (>= 0.1.0))
   (dkml-install (>= 0.1.0))
-  (dkml-install-runner (>= 0.1.0))
   (dune (>= 2.9))
-  (dune-site (>= 2.9))
   (diskuvbox (>= 0.1.0))
   ; Windows needs the 0.2.1-windows-dev patch which is only available in diskuv-opam-repository
   ; Try also:
@@ -50,7 +47,5 @@
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1))
   (dkml-install (>= 0.1.0))
-  (dkml-install-runner (>= 0.1.0))
   (diskuvbox (>= 0.1.0))
-  (dune (>= 2.9))
-  (dune-site (>= 2.9))))
+  (dune (>= 2.9))))
