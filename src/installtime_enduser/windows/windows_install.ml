@@ -130,18 +130,19 @@ module Installer = struct
               helper ~redirects_remaining:(redirects_remaining - 1)
                 ~visited:(current_url :: visited) redirect_location)
       | Ok x ->
-          let actual_cksum = Digestif.SHA256.of_raw_string x.Curly.Response.body in
-          let expected_cksum_hex = Digestif.SHA256.to_hex expected_cksum in
-          let actual_cksum_hex = Digestif.SHA256.to_hex actual_cksum in
-          if expected_cksum_hex = actual_cksum_hex then
+          let actual_cksum =
+            Digestif.SHA256.digest_string x.Curly.Response.body
+          in
+          if Digestif.SHA256.equal expected_cksum actual_cksum then
             let* (_created : bool) = OS.Dir.create (Fpath.parent destfile) in
             OS.File.write destfile x.Curly.Response.body
           else
             Rresult.R.error_msg
               (Fmt.str
                  "Failed to verify the download '%s'. Expected SHA256 checksum \
-                  '%s' but got '%s'"
-                 url expected_cksum_hex actual_cksum_hex)
+                  '%a' but got '%a'"
+                 url Digestif.SHA256.pp expected_cksum Digestif.SHA256.pp
+                 actual_cksum)
       | Error e ->
           Rresult.R.error_msg
             (Fmt.str "Error during download of '%s': %a" url Curly.Error.pp e)
