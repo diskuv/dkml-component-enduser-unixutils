@@ -56,7 +56,7 @@ module Installer = struct
         curl_exe;
       }
 
-  (* TODO: Place in separate installutils library (not API) *)
+  (* TODO: Place in diskuvbox *)
   let chmod_plus_readwrite_dir dir =
     let ( >>= ) = Result.bind in
     let raise_fold_error fpath result =
@@ -89,7 +89,7 @@ module Installer = struct
              "@[@[Failed to chmod u+rw the directory@]@[@ %a@]@ .@]@ @[%a@]"
              Fpath.pp dir Rresult.R.pp_msg s)
 
-  (* TODO: Place in separate installutils library (not API) *)
+  (* TODO: Place in diskuvbox *)
   let remove_dir ?verbose dir =
     (* On Windows we need to get write access before you can delete the
        file. *)
@@ -101,7 +101,7 @@ module Installer = struct
       OS.Dir.delete ~recurse:true dir)
     else Result.ok ()
 
-  (* TODO: Place in separate installutils library (not API) *)
+  (* TODO: Place in diskuvbox *)
   let download_file { curl_exe; _ } url destfile expected_cksum =
     Logs.info (fun m -> m "Downloading %s" url);
     let rec helper ~redirects_remaining ~visited current_url =
@@ -131,7 +131,6 @@ module Installer = struct
                 ~visited:(current_url :: visited) redirect_location)
       | Ok x ->
           let actual_cksum = Digestif.SHA256.of_raw_string x.Curly.Response.body in
-          (* Sha256.equal is buggy in at least 1.15.1! *)
           let expected_cksum_hex = Digestif.SHA256.to_hex expected_cksum in
           let actual_cksum_hex = Digestif.SHA256.to_hex actual_cksum in
           if expected_cksum_hex = actual_cksum_hex then
@@ -168,7 +167,9 @@ module Installer = struct
     (* Example: DELETE Z:\temp\prefix\tools\MSYS2 *)
     let* () = remove_dir ~verbose:true target_msys2_fp in
     let destfile = Fpath.(v tmp_dir / "msys2.exe") in
-    let* () = download_file t url destfile (Digestif.SHA256.of_hex msys2_sha256) in
+    let* () =
+      download_file t url destfile (Digestif.SHA256.of_hex msys2_sha256)
+    in
     match msys2_base with
     | Base msys2_basename ->
         (* Example: Z:\temp\prefix\tools, MSYS2 *)
