@@ -19,7 +19,8 @@
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
  (depends
   (dkml-install (>= 0.1.0))
-  (digestif (>= 1.0.1))))
+  (digestif (>= 1.0.1))
+  (diskuvbox (>= 0.1.0))))
 
 (package
  (name dkml-component-network-unixutils)
