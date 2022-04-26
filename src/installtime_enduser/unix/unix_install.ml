@@ -9,19 +9,19 @@ module Installer = struct
 
   (** [install_sh ~target] makes a symlink from /bin/dash
       or /bin/sh to [target]. *)
-  let install_sh ~target =
+  let install_sh ~link_sh =
     let search = [ Fpath.v "/bin" ] in
     let* src_sh_opt = OS.Cmd.find_tool ~search (Cmd.v "dash") in
-    let* src_sh =
+    let* target =
       match src_sh_opt with
       | Some src -> Result.ok src
       | None -> OS.Cmd.get_tool ~search (Cmd.v "sh")
     in
-    Unix.mkdir (Fpath.to_string (Fpath.parent target)) 0o750;
-    OS.Path.symlink ~target src_sh
+    let* _was_created = OS.Dir.create ~mode:0o750 (Fpath.parent link_sh) in
+    OS.Path.symlink ~target link_sh
 
   let install_utilities { target_sh } =
-    let sequence = install_sh ~target:(Fpath.v target_sh) in
+    let sequence = install_sh ~link_sh:(Fpath.v target_sh) in
     Rresult.R.error_msg_to_invalid_arg sequence
 end
 
@@ -37,5 +37,8 @@ let () =
            /bin/sh) on the PATH" );
       ]
       anon_fun "Install on Unix");
+  if !target_sh = "" then (
+    prerr_endline "FATAL: The -target-sh PATH option is required.";
+    exit 1);
   let installer = Installer.create ~target_sh:!target_sh in
   Installer.install_utilities installer
