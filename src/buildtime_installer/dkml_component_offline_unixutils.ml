@@ -6,10 +6,7 @@ let execute_install ctx =
   Logs.info (fun m ->
       m "The install location is: %a" Fpath.pp
         (ctx.Context.path_eval "%{prefix}%"));
-  Logs.info (fun m ->
-      m "The detected host ABI is: %s"
-        (Context.Abi_v2.to_canonical_string ctx.Context.host_abi_v2));
-  if Context.Abi_v2.is_windows ctx.Context.host_abi_v2 then
+  if Context.Abi_v2.is_windows ctx.Context.target_abi_v2 then
     Staging_ocamlrun_api.spawn_ocamlrun ctx
       Cmd.(
         v
@@ -28,7 +25,7 @@ let execute_install ctx =
         % Fpath.to_string
             (ctx.Context.path_eval "%{staging-curl:share-abi}%/bin/curl.exe")
         %%
-        match ctx.Context.host_abi_v2 with
+        match ctx.Context.target_abi_v2 with
         | Windows_x86 -> v "--32-bit"
         | _ -> empty)
   else
