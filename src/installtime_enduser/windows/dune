@@ -8,13 +8,13 @@
   dkml-install.api
   diskuvbox
   bos
-  curly
   logs.cli
   logs.fmt
   fmt.cli
   fmt.tty
   cmdliner
-  ; want bytecode version of digestif
+  ; want bytecode version of digestif ... but it is terribly slow for SHA256.
+  ; TODO: let mix of bytecode and native code for install.
   digestif.ocaml
   digestif))
 

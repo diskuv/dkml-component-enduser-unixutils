@@ -33,7 +33,14 @@
   (dkml-install (>= 0.1.0))
   (dune (>= 2.9))
   (diskuvbox (>= 0.1.0))
-  (curly (> 0.2.1))
+  ; We used to use `curly` but it buffers the file content in memory. MSYS2,
+  ; which is only 95MB, fails on [Buffer.add] on 32-bit OCaml. We should have
+  ; 2^30-1 as the unsigned int max (the 31th bit is the sign bit, and 32th
+  ; bit is the OCaml tag bit), which is 1GB, but we also have to account for
+  ; the garbage collector and inefficient code that may store multiple copies
+  ; of the buffer in memory. Regardless, should never buffer the file content
+  ; in memory.
+  ; (curly (> 0.2.1))
   (digestif (>= 1.0.1))))
 
 (package

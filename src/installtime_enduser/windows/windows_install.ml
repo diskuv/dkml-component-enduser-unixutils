@@ -16,6 +16,7 @@ module Installer = struct
 
   type t = {
     msys2_setup_exe_basename : string;
+    msys2_sz : int;
     msys2_url_path : string;
     msys2_sha256 : string;
     (* The "base" installer is friendly for CI (ex. GitLab CI).
@@ -35,6 +36,7 @@ module Installer = struct
         (* There is no 32-bit base installer, so have to use the automated but graphical installer. *)
         msys2_setup_exe_basename = "msys2-i686-20200517.exe";
         msys2_url_path = "2020-05-17/msys2-i686-20200517.exe";
+        msys2_sz = 95347691;
         msys2_sha256 =
           "e478c521d4849c0e96cf6b4a0e59fe512b6a96aa2eb00388e77f8f4bc8886794";
         msys2_base = No_base;
@@ -47,6 +49,7 @@ module Installer = struct
       {
         msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
         msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
+        msys2_sz = 70183704;
         msys2_sha256 =
           "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
         msys2_base = Base "msys64";
@@ -101,60 +104,84 @@ module Installer = struct
       OS.Dir.delete ~recurse:true dir)
     else Result.ok ()
 
-  (* TODO: Place in diskuvbox *)
-  let download_file { curl_exe; _ } url destfile expected_cksum =
+  let download_file { curl_exe; _ } url destfile expected_cksum expected_sz =
     Logs.info (fun m -> m "Downloading %s" url);
-    let rec helper ~redirects_remaining ~visited current_url =
-      match Curly.get ~exe:curl_exe current_url with
-      | Ok x when x.Curly.Response.code = 302 -> (
-          match
-            ( redirects_remaining <= 0,
-              List.assoc_opt "location" x.Curly.Response.headers )
-          with
-          | true, _ ->
-              Rresult.R.error_msg
-                (Fmt.str
-                   "@[Redirects did not stop during download.@]@ @[Visited: \
-                    @[%a@]@]"
-                   Fmt.(list ~sep:(sps 0) string)
-                   (List.rev (current_url :: visited)))
-          | false, None ->
-              Rresult.R.error_msg
-                (Fmt.str
-                   "During download of '%s', HTTP 302 received from '%s' with \
-                    no Location header"
-                   url current_url)
-          | false, Some redirect_location ->
-              Logs.debug (fun m ->
-                  m "Redirecting download to: %s" redirect_location);
-              helper ~redirects_remaining:(redirects_remaining - 1)
-                ~visited:(current_url :: visited) redirect_location)
-      | Ok x ->
-          let actual_cksum =
-            Digestif.SHA256.digest_string x.Curly.Response.body
-          in
-          if Digestif.SHA256.equal expected_cksum actual_cksum then
-            let* (_created : bool) = OS.Dir.create (Fpath.parent destfile) in
-            OS.File.write destfile x.Curly.Response.body
-          else
-            Rresult.R.error_msg
-              (Fmt.str
-                 "Failed to verify the download '%s'. Expected SHA256 checksum \
-                  '%a' but got '%a'"
-                 url Digestif.SHA256.pp expected_cksum Digestif.SHA256.pp
-                 actual_cksum)
-      | Error e ->
-          Rresult.R.error_msg
-            (Fmt.str "Error during download of '%s': %a" url Curly.Error.pp e)
+    (* Write to a temporary file because, especially on 32-bit systems,
+       the RAM to hold the file may overflow. And why waste memory on 64-bit?
+       On Windows the temp file needs to be in the same directory as the
+       destination file so that the subsequent rename succeeds.
+    *)
+    let destdir = Fpath.(normalize destfile |> split_base |> fst) in
+    let* _already_exists = OS.Dir.create destdir in
+    let* tmpfile = OS.File.tmp ~dir:destdir "curlo%s" in
+    let protected () =
+      let cmd =
+        Cmd.(v curl_exe % "-L" % "-o" % Fpath.to_string tmpfile % url)
+      in
+      Dkml_install_api.log_spawn_and_raise cmd;
+      (match Sys.backend_type with
+      | Native | Other _ ->
+          Logs.info (fun m -> m "Verifying checksum for %s" url)
+      | Bytecode ->
+          Logs.info (fun m ->
+              m "Verifying checksum for %s using slow bytecode" url));
+      let actual_cksum_ctx = ref (Digestif.SHA256.init ()) in
+      let one_mb = 1_048_576 in
+      let buflen = 32_768 in
+      let buffer = Bytes.create buflen in
+      let sofar = ref 0 in
+      (* This will be piss slow with Digestif bytecode rather than Digestif.c.
+         Or perhaps it is file reading; please hook up a profiler!
+         TODO: Bundle in native code of digestif.c for both Win32 and Win64,
+         or just spawn out to PowerShell `Get-FileHash -Algorithm SHA256`.
+         Perhaps even make "sha256sum" be part of unixutils, with wrappers to
+         shasum on macOS, sha256sum on Linux and Get-FileHash on Windows ...
+         with this slow bytecode as fallback. *)
+      let* actual_cksum =
+        OS.File.with_input ~bytes:buffer tmpfile
+          (fun f () ->
+            let rec feedloop = function
+              | Some (b, pos, len) ->
+                  actual_cksum_ctx :=
+                    Digestif.SHA256.feed_bytes !actual_cksum_ctx ~off:pos ~len b;
+                  sofar := !sofar + buflen;
+                  if !sofar mod one_mb = 0 then
+                    Logs.info (fun l ->
+                        l "Verified %d of %d MB" (!sofar / one_mb)
+                          (expected_sz / one_mb));
+                  feedloop (f ())
+              | None -> Digestif.SHA256.get !actual_cksum_ctx
+            in
+            feedloop (f ()))
+          ()
+      in
+      if Digestif.SHA256.equal expected_cksum actual_cksum then
+        Ok (Sys.rename (Fpath.to_string tmpfile) (Fpath.to_string destfile))
+      else
+        Rresult.R.error_msg
+          (Fmt.str
+             "Failed to verify the download '%s'. Expected SHA256 checksum \
+              '%a' but got '%a'"
+             url Digestif.SHA256.pp expected_cksum Digestif.SHA256.pp
+             actual_cksum)
     in
-    helper ~redirects_remaining:3 ~visited:[] url
+    Fun.protect
+      ~finally:(fun () ->
+        match OS.File.delete tmpfile with
+        | Ok () -> ()
+        | Error msg ->
+            (* Only WARN since this is inside a Fun.protect *)
+            Logs.warn (fun l ->
+                l "The temporary file %a could not be deleted: %a" Fpath.pp
+                  tmpfile Rresult.R.pp_msg msg))
+      (fun () -> protected ())
 
   (** [install_msys2 ~target_dir] installs MSYS2 into [target_dir] *)
   let install_msys2
       ({
-         (* msys2_setup_exe_basename; *)
          msys2_url_path;
          msys2_sha256;
+         msys2_sz;
          msys2_base;
          target_msys2_dir;
          tmp_dir;
@@ -169,7 +196,9 @@ module Installer = struct
     let* () = remove_dir ~verbose:true target_msys2_fp in
     let destfile = Fpath.(v tmp_dir / "msys2.exe") in
     let* () =
-      download_file t url destfile (Digestif.SHA256.of_hex msys2_sha256)
+      download_file t url destfile
+        (Digestif.SHA256.of_hex msys2_sha256)
+        msys2_sz
     in
     match msys2_base with
     | Base msys2_basename ->
