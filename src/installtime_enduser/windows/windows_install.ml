@@ -222,7 +222,7 @@ module Installer = struct
         Dkml_install_api.log_spawn_and_raise
           Cmd.(
             v (Fpath.to_string destfile)
-            % "in" % "--confirm-command" % "--accept-messages" % "--root"
+            % "--silentUpdate" % "--verbose"
             % Fpath.to_string target_msys2_fp);
         Result.ok ()
 
