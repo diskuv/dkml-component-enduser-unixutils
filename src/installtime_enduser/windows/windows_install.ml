@@ -34,12 +34,12 @@ module Installer = struct
     if bits32 then
       {
         (* There is no 32-bit base installer, so have to use the automated but graphical installer. *)
-        msys2_setup_exe_basename = "msys2-i686-20200517.exe";
-        msys2_url_path = "2020-05-17/msys2-i686-20200517.exe";
-        msys2_sz = 95347691;
+        msys2_setup_exe_basename = "msys2-base-i686-20210705.sfx.exe";
+        msys2_url_path = "nightly-i686/msys2-base-i686-20210705.sfx.exe";
+        msys2_sz = 72909299;
         msys2_sha256 =
-          "e478c521d4849c0e96cf6b4a0e59fe512b6a96aa2eb00388e77f8f4bc8886794";
-        msys2_base = No_base;
+          "29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05";
+        msys2_base = Base "msys32";
         tmp_dir;
         target_sh;
         target_msys2_dir;
