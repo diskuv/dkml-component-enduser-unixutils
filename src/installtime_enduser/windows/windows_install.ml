@@ -30,34 +30,22 @@ module Installer = struct
     curl_exe : string;
   }
 
-  let create ~bits32 ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe =
-    if bits32 then
-      {
-        (* There is no 32-bit base installer, so have to use the automated but graphical installer. *)
-        msys2_setup_exe_basename = "msys2-base-i686-20210705.sfx.exe";
-        msys2_url_path = "nightly-i686/msys2-base-i686-20210705.sfx.exe";
-        msys2_sz = 72909299;
-        msys2_sha256 =
-          "29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05";
-        msys2_base = Base "msys32";
-        tmp_dir;
-        target_sh;
-        target_msys2_dir;
-        curl_exe;
-      }
-    else
-      {
-        msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
-        msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
-        msys2_sz = 70183704;
-        msys2_sha256 =
-          "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
-        msys2_base = Base "msys64";
-        tmp_dir;
-        target_sh;
-        target_msys2_dir;
-        curl_exe;
-      }
+  (** Always use MSYS2 64-bit regardless of [bits32] because MSYS2 32-bit
+      installer is deprecated. Can use MSYS2 CLANG32 repository for
+      32-bit compiled packages however. *)
+  let create ~bits32:_ ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe =
+    {
+      msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
+      msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
+      msys2_sz = 70183704;
+      msys2_sha256 =
+        "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
+      msys2_base = Base "msys64";
+      tmp_dir;
+      target_sh;
+      target_msys2_dir;
+      curl_exe;
+    }
 
   (* TODO: Place in diskuvbox *)
   let chmod_plus_readwrite_dir dir =
