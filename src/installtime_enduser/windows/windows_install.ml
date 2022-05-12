@@ -31,7 +31,7 @@ module Installer = struct
   }
 
   (** Always use MSYS2 64-bit regardless of [bits32] because MSYS2 32-bit
-      installer is deprecated. Can use MSYS2 CLANG32 repository for
+      installer is deprecated. Can use MSYS2 MINGW32 repository for
       32-bit compiled packages however. *)
   let create ~bits32:_ ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe =
     {
