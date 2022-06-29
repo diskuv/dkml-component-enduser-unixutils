@@ -49,9 +49,11 @@ let register () =
 
       let depends_on = [ "staging-ocamlrun"; "staging-unixutils" ]
 
-      let install_user_subcommand ~component_name:_ ~subcommand_name ~ctx_t =
+      let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
+          =
         let doc = "Offline install Unix utilities" in
-        Result.ok
-        @@ Cmdliner.Term.
-             (const execute_install $ ctx_t, info subcommand_name ~doc)
+        Dkml_install_api.Forward_progress.Continue_progress
+          ( Cmdliner.Term.
+              (const execute_install $ ctx_t, info subcommand_name ~doc),
+            fl )
     end)

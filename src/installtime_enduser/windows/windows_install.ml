@@ -7,8 +7,11 @@ module Installer = struct
     match r with
     | Ok v -> f v
     | Error s ->
-        raise
-          (Dkml_install_api.Installation_error (Fmt.str "%a" Rresult.R.pp_msg s))
+        Dkml_install_api.Forward_progress.stderr_fatallog ~id:"54c34807"
+          (Fmt.str "%a" Rresult.R.pp_msg s);
+        exit
+          (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
+             Exit_transient_failure)
 
   let ( let+ ) f x = Rresult.R.map x f
 
@@ -106,7 +109,7 @@ module Installer = struct
       let cmd =
         Cmd.(v curl_exe % "-L" % "-o" % Fpath.to_string tmpfile % url)
       in
-      Dkml_install_api.log_spawn_and_raise cmd;
+      Dkml_install_api.(log_spawn_onerror_exit ~id:"e6435b12" cmd);
       (match Sys.backend_type with
       | Native | Other _ ->
           Logs.info (fun m -> m "Verifying checksum for %s" url)
@@ -199,7 +202,7 @@ module Installer = struct
           Fpath.(target_msys2_parent_fp / msys2_basename)
         in
         let* () = remove_dir target_msys2_extract_fp in
-        Dkml_install_api.log_spawn_and_raise
+        Dkml_install_api.log_spawn_onerror_exit ~id:"4010064d"
           Cmd.(
             v (Fpath.to_string destfile)
             % "-y"
@@ -207,7 +210,7 @@ module Installer = struct
         (* Example: MOVE Z:\temp\prefix\tools\msys64 -> Z:\temp\prefix\tools\MSYS2 *)
         OS.Path.move target_msys2_extract_fp target_msys2_fp
     | No_base ->
-        Dkml_install_api.log_spawn_and_raise
+        Dkml_install_api.log_spawn_onerror_exit ~id:"8889d18a"
           Cmd.(
             v (Fpath.to_string destfile)
             % "--silentUpdate" % "--verbose"
@@ -253,8 +256,11 @@ module Installer = struct
     match sequence with
     | Ok () -> ()
     | Error e ->
-        raise
-          (Dkml_install_api.Installation_error (Fmt.str "%a" Rresult.R.pp_msg e))
+        Dkml_install_api.Forward_progress.stderr_fatallog ~id:"59391a58"
+          (Fmt.str "%a" Rresult.R.pp_msg e);
+        exit
+          (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
+             Exit_transient_failure)
 end
 
 (** [install] runs the installation *)
