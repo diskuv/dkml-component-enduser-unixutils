@@ -12,11 +12,11 @@ homepage: "https://github.com/diskuv/dkml-component-enduser-unixutils"
 bug-reports:
   "https://github.com/diskuv/dkml-component-enduser-unixutils/issues"
 depends: [
+  "dune" {>= "2.9"}
   "dkml-component-staging-unixutils" {= version}
   "dkml-component-staging-ocamlrun" {>= "4.12.1"}
   "dkml-component-staging-curl" {>= "0.1.0"}
   "dkml-install" {>= "0.1.0"}
-  "dune" {>= "2.9" & >= "2.9"}
   "diskuvbox" {>= "0.1.0"}
   "digestif" {>= "1.0.1"}
   "odoc" {with-doc}

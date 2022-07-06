@@ -31,7 +31,6 @@
   (dkml-component-staging-ocamlrun (>= 4.12.1))
   (dkml-component-staging-curl (>= 0.1.0))
   (dkml-install (>= 0.1.0))
-  (dune (>= 2.9))
   (diskuvbox (>= 0.1.0))
   ; We used to use `curly` but it buffers the file content in memory. MSYS2,
   ; which is only 95MB, fails on [Buffer.add] on 32-bit OCaml. We should have
@@ -52,5 +51,4 @@
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1))
   (dkml-install (>= 0.1.0))
-  (diskuvbox (>= 0.1.0))
-  (dune (>= 2.9))))
+  (diskuvbox (>= 0.1.0))))

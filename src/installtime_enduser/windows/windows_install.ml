@@ -1,4 +1,5 @@
-open Cmdliner
+module Arg = Cmdliner.Arg
+module Term = Cmdliner.Term
 
 module Installer = struct
   open Bos
@@ -72,11 +73,11 @@ module Installer = struct
           if mode land 0o600 <> 0o600 then
             let+ () = OS.Path.Mode.set path (mode lor 0o600) in
             ()
-          else Result.ok ()
+          else Ok ()
     in
-    OS.Path.fold ~err:raise_fold_error chmod_u_rw (Result.ok ()) [ dir ]
+    OS.Path.fold ~err:raise_fold_error chmod_u_rw (Ok ()) [ dir ]
     >>= function
-    | Ok () -> Result.ok ()
+    | Ok () -> Ok ()
     | Error s ->
         Rresult.R.error_msg
           (Fmt.str
@@ -93,7 +94,7 @@ module Installer = struct
         Logs.info (fun m -> m "Removing directory %a" Fpath.pp dir);
       let* () = chmod_plus_readwrite_dir dir in
       OS.Dir.delete ~recurse:true dir)
-    else Result.ok ()
+    else Ok ()
 
   let download_file { curl_exe; _ } url destfile expected_cksum expected_sz =
     Logs.info (fun m -> m "Downloading %s" url);
@@ -215,14 +216,14 @@ module Installer = struct
             v (Fpath.to_string destfile)
             % "--silentUpdate" % "--verbose"
             % Fpath.to_string target_msys2_fp);
-        Result.ok ()
+        Ok ()
 
   (** [install_msys2_dll_in_targetdir ~msys2_dir ~target_dir] copies
       msys-2.0.dll into [target_dir] if it is not already in [target_dir] *)
   let install_msys2_dll_in_targetdir ~msys2_dir ~target_dir =
     let dest = Fpath.(target_dir / "msys-2.0.dll") in
     let* exists = OS.Path.exists dest in
-    if exists then Result.ok ()
+    if exists then Ok ()
     else
       Rresult.R.error_to_msg ~pp_error:Fmt.string
         (Diskuvbox.copy_file

@@ -14,7 +14,7 @@ module Installer = struct
     let* src_sh_opt = OS.Cmd.find_tool ~search (Cmd.v "dash") in
     let* target =
       match src_sh_opt with
-      | Some src -> Result.ok src
+      | Some src -> Ok src
       | None -> OS.Cmd.get_tool ~search (Cmd.v "sh")
     in
     let* _was_created = OS.Dir.create ~mode:0o750 (Fpath.parent link_sh) in
