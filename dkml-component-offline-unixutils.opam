@@ -14,7 +14,7 @@ bug-reports:
 depends: [
   "dune" {>= "2.9"}
   "dkml-component-staging-unixutils" {= version}
-  "dkml-component-staging-ocamlrun" {>= "4.12.1"}
+  "dkml-component-staging-ocamlrun" {>= "4.12.1~" & < "4.12.2~"}
   "dkml-install" {>= "0.1.0"}
   "diskuvbox" {>= "0.1.0"}
   "odoc" {with-doc}
