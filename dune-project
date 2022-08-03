@@ -1,7 +1,7 @@
 (lang dune 2.9)
 
 (name dkml-component-staging-unixutils)
-(version 0.1.0)
+(version 0.2.0)
 
 (generate_opam_files true)
 
@@ -17,7 +17,7 @@
  (description
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
  (depends
-  (dkml-install (>= 0.1.0))
+  (dkml-install (>= 0.2.0))
   (digestif (>= 1.0.1))
   (diskuvbox (>= 0.1.0))))
 
@@ -30,7 +30,7 @@
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
   (dkml-component-staging-curl (>= 0.1.0))
-  (dkml-install (>= 0.1.0))
+  (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))
   ; We used to use `curly` but it buffers the file content in memory. MSYS2,
   ; which is only 95MB, fails on [Buffer.add] on 32-bit OCaml. We should have
@@ -50,5 +50,5 @@
  (depends
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
-  (dkml-install (>= 0.1.0))
+  (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))))
