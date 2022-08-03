@@ -47,7 +47,7 @@ let register () =
 
       let component_name = "offline-unixutils"
 
-      let depends_on = [ "staging-ocamlrun"; "staging-unixutils" ]
+      let install_depends_on = [ "staging-ocamlrun"; "staging-unixutils" ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =
