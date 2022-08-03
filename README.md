@@ -3,10 +3,16 @@
 The unixutils components provides common Unix utilities to all DKML
 installable platforms, including Windows.
 
-MSYS2 provides the Windows environment.
-
 These components can be used with [dkml-install-api](https://diskuv.github.io/dkml-install-api/index.html)
 to generate installers.
+
+MSYS2 provides the Windows environment. When building with MSYS2 or with
+Diskuv OCaml, you will need to first install pkg-config so that the OCaml
+package ``conf-pkg-config``, a dependency of ``digestif``, can be built:
+
+```bash
+pacman -S mingw-w64-clang-x86_64-pkg-config
+```
 
 ## Components
 
