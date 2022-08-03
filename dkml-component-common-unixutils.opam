@@ -2,7 +2,7 @@
 opam-version: "2.0"
 version: "0.2.0"
 synopsis:
-  "Collection of end-user installers of common Unix utilities for all DKML installable platforms"
+  "Common code for installers of common Unix utilities for all DKML installable platforms"
 description:
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows"
 maintainer: ["opensource+diskuv-ocaml@support.diskuv.com"]
@@ -14,8 +14,6 @@ bug-reports:
 depends: [
   "dune" {>= "2.9"}
   "dkml-install" {>= "0.2.0"}
-  "digestif" {>= "1.0.1"}
-  "diskuvbox" {>= "0.1.0"}
   "odoc" {with-doc}
 ]
 build: [

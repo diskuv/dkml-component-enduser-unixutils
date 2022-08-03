@@ -1,4 +1,10 @@
 (library
+ (public_name dkml-component-common-unixutils)
+ (name dkml_component_common_unixutils)
+ (modules dkml_component_common_unixutils)
+ (libraries dkml-install.api))
+
+(library
  (public_name dkml-component-staging-unixutils)
  (name dkml_component_staging_unixutils)
  (modules dkml_component_staging_unixutils)
@@ -11,6 +17,7 @@
  (libraries
   dkml-install.register
   dkml-component-staging-ocamlrun.api
+  dkml-component-common-unixutils
   bos
   logs))
 
@@ -21,5 +28,6 @@
  (libraries
   dkml-install.register
   dkml-component-staging-ocamlrun.api
+  dkml-component-common-unixutils
   bos
   logs))

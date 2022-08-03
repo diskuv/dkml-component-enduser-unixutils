@@ -3,9 +3,6 @@ open Dkml_install_register
 open Bos
 
 let execute_install ctx =
-  Logs.info (fun m ->
-      m "The install location is: %a" Fpath.pp
-        (ctx.Context.path_eval "%{prefix}%"));
   if Context.Abi_v2.is_windows ctx.Context.target_abi_v2 then
     Staging_ocamlrun_api.spawn_ocamlrun ctx
       Cmd.(
@@ -51,9 +48,18 @@ let register () =
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =
-        let doc = "Offline install Unix utilities" in
+        let doc = "Install Unix utilities" in
         Dkml_install_api.Forward_progress.Continue_progress
           ( Cmdliner.Term.
               (const execute_install $ ctx_t, info subcommand_name ~doc),
+            fl )
+
+      let uninstall_user_subcommand ~component_name:_ ~subcommand_name ~fl
+          ~ctx_t =
+        let doc = "Uninstall Unix utilities" in
+        Dkml_install_api.Forward_progress.Continue_progress
+          ( Cmdliner.Term.
+              ( const Dkml_component_common_unixutils.execute_uninstall $ ctx_t,
+                info subcommand_name ~doc ),
             fl )
     end)

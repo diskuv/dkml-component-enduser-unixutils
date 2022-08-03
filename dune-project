@@ -1,6 +1,6 @@
 (lang dune 2.9)
 
-(name dkml-component-staging-unixutils)
+(name dkml-component-common-unixutils)
 (version 0.2.0)
 
 (generate_opam_files true)
@@ -10,6 +10,14 @@
 (license Apache-2.0)
 (authors "Diskuv, Inc. <opensource+diskuv-ocaml@support.diskuv.com>")
 (maintainers "opensource+diskuv-ocaml@support.diskuv.com")
+
+(package
+ (name dkml-component-common-unixutils)
+ (synopsis "Common code for installers of common Unix utilities for all DKML installable platforms")
+ (description
+  "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
+ (depends
+  (dkml-install (>= 0.2.0))))
 
 (package
  (name dkml-component-staging-unixutils)
@@ -27,7 +35,8 @@
  (description
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
  (depends
-  (dkml-component-staging-unixutils (= :version))
+  (dkml-component-staging-unixutils (= :version))  
+  (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
   (dkml-component-staging-curl (>= 0.1.0))
   (dkml-install (>= 0.2.0))
@@ -49,6 +58,7 @@
   "`unixutils` provides common Unix utilities for all DKML installable platforms, including Windows")
  (depends
   (dkml-component-staging-unixutils (= :version))
+  (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))))

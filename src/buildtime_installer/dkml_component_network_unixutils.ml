@@ -52,9 +52,18 @@ let register () =
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =
-        let doc = "Install Unix utilities over the network" in
+        let doc = "Install Unix utilities" in
         Dkml_install_api.Forward_progress.Continue_progress
           ( Cmdliner.Term.
               (const execute_install $ ctx_t, info subcommand_name ~doc),
+            fl )
+
+      let uninstall_user_subcommand ~component_name:_ ~subcommand_name ~fl
+          ~ctx_t =
+        let doc = "Uninstall Unix utilities" in
+        Dkml_install_api.Forward_progress.Continue_progress
+          ( Cmdliner.Term.
+              ( const Dkml_component_common_unixutils.execute_uninstall $ ctx_t,
+                info subcommand_name ~doc ),
             fl )
     end)
