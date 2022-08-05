@@ -8,5 +8,13 @@ let execute_uninstall ctx =
     ~dir:(ctx.Context.path_eval "%{prefix}%/tools/MSYS2")
     ~wait_seconds_if_stuck:300.;
   (* remove tools/ if and only if it is empty *)
-  try Unix.rmdir (Fpath.to_string @@ ctx.Context.path_eval "%{prefix}%/tools")
-  with Unix.Unix_error (Unix.ENOTEMPTY, _, _) -> ()
+  let toolsdir = ctx.Context.path_eval "%{prefix}%/tools" in
+  try Unix.rmdir (Fpath.to_string toolsdir) with
+  | Unix.Unix_error (Unix.ENOTEMPTY, _, _) ->
+      (* There are still directories or files in tools/. Fine! *)
+      Logs.debug (fun l ->
+          l "Did not delete %a because it is was not empty" Fpath.pp toolsdir)
+  | Unix.Unix_error (Unix.ENOENT, _, _) ->
+      (* There was no tools/ directory. Perhaps a previous installation was
+         aborted very early. *)
+      ()
