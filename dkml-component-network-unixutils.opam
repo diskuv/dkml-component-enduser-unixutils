@@ -38,3 +38,9 @@ build: [
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
 dev-repo: "git+https://github.com/diskuv/dkml-component-unixutils.git"
+pin-depends: [
+  [
+    "dkml-component-staging-curl.0.2.0"
+    "git+https://github.com/diskuv/dkml-component-curl.git"
+  ]
+]

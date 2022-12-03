@@ -48,6 +48,37 @@ alongside `sh.exe`.
 On Unix and macOS the `sh` is a symlink to `/bin/dash` if Dash
 is available, or `/bin/sh` if not.
 
+## Testing
+
+In PowerShell on Windows, to mimic [dkml_component_offline_unixutils.ml](src/buildtime_installer/dkml_component_offline_unixutils.ml):
+
+```powershell
+opam install .
+if (!(Test-Path _build\tmp)) { New-Item -ItemType Directory _build\tmp }
+if (Test-Path _build\tools) { Remove-Item _build\tools -Force -Recurse }
+if (Test-Path _build\tools32) { Remove-Item _build\tools32 -Force -Recurse }
+
+& "$(opam var dkml-component-staging-unixutils:share)\staging-files\generic\windows_install.bc" `
+    --tmp-dir=_build/tmp `
+    --target-msys2-dir=$PWD\_build\tools\MSYS2 `
+    --target-sh=_build/tools/unixutils/bin/sh.exe `
+    --msys2-base-exe="$(opam var dkml-component-offline-unixutils:share)\staging-files\windows_x86_64\bin\msys2-base.sfx.exe"
+
+& "$(opam var dkml-component-staging-unixutils:share)\staging-files\generic\windows_install.bc" `
+    --tmp-dir=_build/tmp `
+    --target-msys2-dir=$PWD\_build\tools32\MSYS2 `
+    --target-sh=_build/tools32/unixutils/bin/sh.exe `
+    --msys2-base-exe="$(opam var dkml-component-offline-unixutils:share)\staging-files\windows_x86\bin\msys2-base.sfx.exe" `
+    --32-bit
+```
+
+The results will be in `_build/tools`. For example, the POSIX shell can be run with:
+
+```powershell
+& .\_build\tools\unixutils\bin\sh.exe
+& .\_build\tools32\unixutils\bin\sh.exe
+```
+
 ## Contributing
 
 See [the Contributors section of dkml-install-api](https://github.com/diskuv/dkml-install-api/blob/main/contributors/README.md).

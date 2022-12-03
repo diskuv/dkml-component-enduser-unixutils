@@ -1,3 +1,8 @@
+(* Cmdliner 1.0 -> 1.1 deprecated a lot of things. But until Cmdliner 1.1
+   is in common use in Opam packages we should provide backwards compatibility.
+   In fact, Diskuv OCaml is not even using Cmdliner 1.1. *)
+[@@@alert "-deprecated"]
+
 open Dkml_install_api
 open Dkml_install_register
 open Bos
@@ -18,9 +23,9 @@ let execute_install ctx =
         % "--target-sh"
         % Fpath.to_string
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh.exe")
-        % "--curl-exe"
+        % "--msys2-base-exe"
         % Fpath.to_string
-            (ctx.Context.path_eval "%{staging-curl:share-abi}%/bin/curl.exe")
+            (ctx.Context.path_eval "%{offline-unixutils:share-abi}%/bin/msys2-base.sfx.exe")
         %%
         match ctx.Context.target_abi_v2 with
         | Windows_x86 -> v "--32-bit"

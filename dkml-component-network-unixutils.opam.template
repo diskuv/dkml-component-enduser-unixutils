@@ -1,0 +1,6 @@
+pin-depends: [
+  [
+    "dkml-component-staging-curl.0.2.0"
+    "git+https://github.com/diskuv/dkml-component-curl.git"
+  ]
+]
