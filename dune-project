@@ -6,7 +6,7 @@
 (generate_opam_files true)
 
 (source
- (github diskuv/dkml-component-enduser-unixutils))
+ (github diskuv/dkml-component-unixutils))
 (license Apache-2.0)
 (authors "Diskuv, Inc. <opensource+diskuv-ocaml@support.diskuv.com>")
 (maintainers "opensource+diskuv-ocaml@support.diskuv.com")

@@ -8,9 +8,8 @@ description:
 maintainer: ["opensource+diskuv-ocaml@support.diskuv.com"]
 authors: ["Diskuv, Inc. <opensource+diskuv-ocaml@support.diskuv.com>"]
 license: "Apache-2.0"
-homepage: "https://github.com/diskuv/dkml-component-enduser-unixutils"
-bug-reports:
-  "https://github.com/diskuv/dkml-component-enduser-unixutils/issues"
+homepage: "https://github.com/diskuv/dkml-component-unixutils"
+bug-reports: "https://github.com/diskuv/dkml-component-unixutils/issues"
 depends: [
   "dune" {>= "2.9"}
   "dkml-component-staging-unixutils" {= version}
@@ -36,5 +35,4 @@ build: [
   ]
   ["dune" "install" "-p" name "--create-install-files" name]
 ]
-dev-repo:
-  "git+https://github.com/diskuv/dkml-component-enduser-unixutils.git"
+dev-repo: "git+https://github.com/diskuv/dkml-component-unixutils.git"
