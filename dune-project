@@ -41,7 +41,7 @@
  (depends
   (dkml-component-staging-unixutils (= :version))  
   (dkml-component-common-unixutils (= :version))
-  (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
+  (dkml-component-staging-ocamlrun (>= 4.12.1~))
   (dkml-component-staging-curl (>= 0.1.0))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))
@@ -63,6 +63,6 @@
  (depends
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-common-unixutils (= :version))
-  (dkml-component-staging-ocamlrun (and (>= 4.12.1~) (< 4.12.2~)))
+  (dkml-component-staging-ocamlrun (>= 4.12.1~))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))))
