@@ -6,6 +6,7 @@
   (byte exe))
  (libraries
   dkml-install.api
+  unixutils_install_common
   diskuvbox
   bos
   logs.cli

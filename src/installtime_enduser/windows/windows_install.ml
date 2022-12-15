@@ -13,11 +13,11 @@ module Installer = struct
     match r with
     | Ok v -> f v
     | Error s ->
-      Dkml_install_api.Forward_progress.stderr_fatallog ~id:"54c34807"
-        (Fmt.str "%a" Rresult.R.pp_msg s);
-      exit
-        (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
-           Exit_transient_failure)
+        Dkml_install_api.Forward_progress.stderr_fatallog ~id:"54c34807"
+          (Fmt.str "%a" Rresult.R.pp_msg s);
+        exit
+          (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
+             Exit_transient_failure)
 
   let ( let+ ) f x = Rresult.R.map x f
 
@@ -31,7 +31,9 @@ module Installer = struct
     msys2_sha256 : string;
   }
 
-  type select_msys2 = Download_msys2 of download_msys2 | Use_msys2_base_exe of Fpath.t
+  type select_msys2 =
+    | Download_msys2 of download_msys2
+    | Use_msys2_base_exe of Fpath.t
 
   type t = {
     (* The "base" installer is friendly for CI (ex. GitLab CI).
@@ -42,38 +44,45 @@ module Installer = struct
     tmp_dir : string;
     target_sh : string;
     target_msys2_dir : string;
+    trust_anchors : Fpath.t list;
     select_msys2 : select_msys2;
   }
 
-  let create ~bits32 ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe_opt ~msys2_base_exe_opt =
-    let select_msys2 = match curl_exe_opt, msys2_base_exe_opt, bits32 with
+  let create ~bits32 ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe_opt
+      ~msys2_base_exe_opt ~trust_anchors =
+    let select_msys2 =
+      match (curl_exe_opt, msys2_base_exe_opt, bits32) with
       | _, Some msys2_base_exe, _ -> Use_msys2_base_exe msys2_base_exe
       | Some curl_exe, _, true ->
-        (* 32-bit (DEPRECATED!) *)
-        Download_msys2 {
-          curl_exe;
-          msys2_setup_exe_basename = "msys2-base-i686-20210705.sfx.exe";
-          msys2_url_path = "nightly-i686/msys2-base-i686-20210705.sfx.exe";
-          msys2_sz = 72909299;
-          msys2_sha256 =
-            "29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05";
-        }
+          (* 32-bit (DEPRECATED!) *)
+          Download_msys2
+            {
+              curl_exe;
+              msys2_setup_exe_basename = "msys2-base-i686-20210705.sfx.exe";
+              msys2_url_path = "nightly-i686/msys2-base-i686-20210705.sfx.exe";
+              msys2_sz = 72909299;
+              msys2_sha256 =
+                "29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05";
+            }
       | Some curl_exe, _, false ->
-        (* 64-bit *)
-        Download_msys2 {
-          curl_exe;
-          msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
-          msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
-          msys2_sz = 70183704;
-          msys2_sha256 =
-            "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
-        }
-      | _ -> failwith "Either --msys2-base-exe or --curl-exe must be specified" in
+          (* 64-bit *)
+          Download_msys2
+            {
+              curl_exe;
+              msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
+              msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
+              msys2_sz = 70183704;
+              msys2_sha256 =
+                "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
+            }
+      | _ -> failwith "Either --msys2-base-exe or --curl-exe must be specified"
+    in
     {
       msys2_base = Base (if bits32 then "msys32" else "msys64");
       tmp_dir;
       target_sh;
       target_msys2_dir;
+      trust_anchors;
       select_msys2;
     }
 
@@ -89,15 +98,17 @@ module Installer = struct
     let* tmpfile = OS.File.tmp ~dir:destdir "curlo%s" in
     let protected () =
       let cmd =
-        Cmd.(v (Fpath.to_string curl_exe) % "-L" % "-o" % Fpath.to_string tmpfile % url)
+        Cmd.(
+          v (Fpath.to_string curl_exe)
+          % "-L" % "-o" % Fpath.to_string tmpfile % url)
       in
       Dkml_install_api.(log_spawn_onerror_exit ~id:"e6435b12" cmd);
       (match Sys.backend_type with
-       | Native | Other _ ->
-         Logs.info (fun m -> m "Verifying checksum for %s" url)
-       | Bytecode ->
-         Logs.info (fun m ->
-             m "Verifying checksum for %s using slow bytecode" url));
+      | Native | Other _ ->
+          Logs.info (fun m -> m "Verifying checksum for %s" url)
+      | Bytecode ->
+          Logs.info (fun m ->
+              m "Verifying checksum for %s using slow bytecode" url));
       let actual_cksum_ctx = ref (Digestif.SHA256.init ()) in
       let one_mb = 1_048_576 in
       let buflen = 32_768 in
@@ -113,19 +124,19 @@ module Installer = struct
       let* actual_cksum =
         OS.File.with_input ~bytes:buffer tmpfile
           (fun f () ->
-             let rec feedloop = function
-               | Some (b, pos, len) ->
-                 actual_cksum_ctx :=
-                   Digestif.SHA256.feed_bytes !actual_cksum_ctx ~off:pos ~len b;
-                 sofar := !sofar + buflen;
-                 if !sofar mod one_mb = 0 then
-                   Logs.info (fun l ->
-                       l "Verified %d of %d MB" (!sofar / one_mb)
-                         (expected_sz / one_mb));
-                 feedloop (f ())
-               | None -> Digestif.SHA256.get !actual_cksum_ctx
-             in
-             feedloop (f ()))
+            let rec feedloop = function
+              | Some (b, pos, len) ->
+                  actual_cksum_ctx :=
+                    Digestif.SHA256.feed_bytes !actual_cksum_ctx ~off:pos ~len b;
+                  sofar := !sofar + buflen;
+                  if !sofar mod one_mb = 0 then
+                    Logs.info (fun l ->
+                        l "Verified %d of %d MB" (!sofar / one_mb)
+                          (expected_sz / one_mb));
+                  feedloop (f ())
+              | None -> Digestif.SHA256.get !actual_cksum_ctx
+            in
+            feedloop (f ()))
           ()
       in
       if Digestif.SHA256.equal expected_cksum actual_cksum then
@@ -140,9 +151,9 @@ module Installer = struct
     in
     Fun.protect
       ~finally:(fun () ->
-          match OS.File.delete tmpfile with
-          | Ok () -> ()
-          | Error msg ->
+        match OS.File.delete tmpfile with
+        | Ok () -> ()
+        | Error msg ->
             (* Only WARN since this is inside a Fun.protect *)
             Logs.warn (fun l ->
                 l "The temporary file %a could not be deleted: %a" Fpath.pp
@@ -150,14 +161,7 @@ module Installer = struct
       (fun () -> protected ())
 
   (** [install_msys2 ~target_dir] installs MSYS2 into [target_dir] *)
-  let install_msys2
-      ({
-        msys2_base;
-        target_msys2_dir;
-        tmp_dir;
-        select_msys2;
-        _;
-      } ) =
+  let install_msys2 { msys2_base; target_msys2_dir; tmp_dir; select_msys2; _ } =
     let target_msys2_fp = Fpath.v target_msys2_dir in
     (* Example: DELETE Z:\temp\prefix\tools\MSYS2 *)
     let () =
@@ -166,48 +170,49 @@ module Installer = struct
     in
     let* destfile =
       match select_msys2 with
-      | Download_msys2 {curl_exe; msys2_url_path;
-                        msys2_sha256;
-                        msys2_sz; _} ->
-        let destfile = Fpath.(v tmp_dir / "msys2.exe") in
-        let url =
-          "https://github.com/msys2/msys2-installer/releases/download/"
-          ^ msys2_url_path
-        in
-        let* () = download_file ~curl_exe ~url ~destfile
-            (Digestif.SHA256.of_hex msys2_sha256)
-            msys2_sz in
-        Ok destfile
+      | Download_msys2 { curl_exe; msys2_url_path; msys2_sha256; msys2_sz; _ }
+        ->
+          let destfile = Fpath.(v tmp_dir / "msys2.exe") in
+          let url =
+            "https://github.com/msys2/msys2-installer/releases/download/"
+            ^ msys2_url_path
+          in
+          let* () =
+            download_file ~curl_exe ~url ~destfile
+              (Digestif.SHA256.of_hex msys2_sha256)
+              msys2_sz
+          in
+          Ok destfile
       | Use_msys2_base_exe msys2_base_exe -> Ok msys2_base_exe
     in
     match msys2_base with
     | Base msys2_basename ->
-      (* Example: Z:\temp\prefix\tools, MSYS2 *)
-      let target_msys2_parent_fp, _target_msys2_rel_fp =
-        Fpath.split_base target_msys2_fp
-      in
-      (* Example: Z:\temp\prefix\tools\msys64 *)
-      let target_msys2_extract_fp =
-        Fpath.(target_msys2_parent_fp / msys2_basename)
-      in
-      let () =
-        Dkml_install_api.uninstall_directory_onerror_exit ~id:"d9d7dbee"
-          ~dir:target_msys2_extract_fp ~wait_seconds_if_stuck:300.
-      in
-      Dkml_install_api.log_spawn_onerror_exit ~id:"4010064d"
-        Cmd.(
-          v (Fpath.to_string destfile)
-          % "-y"
-          % Fmt.str "-o%a" Fpath.pp target_msys2_parent_fp);
-      (* Example: MOVE Z:\temp\prefix\tools\msys64 -> Z:\temp\prefix\tools\MSYS2 *)
-      OS.Path.move target_msys2_extract_fp target_msys2_fp
+        (* Example: Z:\temp\prefix\tools, MSYS2 *)
+        let target_msys2_parent_fp, _target_msys2_rel_fp =
+          Fpath.split_base target_msys2_fp
+        in
+        (* Example: Z:\temp\prefix\tools\msys64 *)
+        let target_msys2_extract_fp =
+          Fpath.(target_msys2_parent_fp / msys2_basename)
+        in
+        let () =
+          Dkml_install_api.uninstall_directory_onerror_exit ~id:"d9d7dbee"
+            ~dir:target_msys2_extract_fp ~wait_seconds_if_stuck:300.
+        in
+        Dkml_install_api.log_spawn_onerror_exit ~id:"4010064d"
+          Cmd.(
+            v (Fpath.to_string destfile)
+            % "-y"
+            % Fmt.str "-o%a" Fpath.pp target_msys2_parent_fp);
+        (* Example: MOVE Z:\temp\prefix\tools\msys64 -> Z:\temp\prefix\tools\MSYS2 *)
+        OS.Path.move target_msys2_extract_fp target_msys2_fp
     | No_base ->
-      Dkml_install_api.log_spawn_onerror_exit ~id:"8889d18a"
-        Cmd.(
-          v (Fpath.to_string destfile)
-          % "--silentUpdate" % "--verbose"
-          % Fpath.to_string target_msys2_fp);
-      Ok ()
+        Dkml_install_api.log_spawn_onerror_exit ~id:"8889d18a"
+          Cmd.(
+            v (Fpath.to_string destfile)
+            % "--silentUpdate" % "--verbose"
+            % Fpath.to_string target_msys2_fp);
+        Ok ()
 
   (** [install_msys2_dll_in_targetdir ~msys2_dir ~target_dir] copies
       msys-2.0.dll into [target_dir] if it is not already in [target_dir] *)
@@ -221,6 +226,21 @@ module Installer = struct
            ~src:Fpath.(msys2_dir / "usr" / "bin" / "msys-2.0.dll")
            ~dst:dest ())
 
+  (** [install_trust_anchors ~msys2_dir ~trust_anchors] *)
+  let install_trust_anchors ~msys2_dir ~trust_anchors =
+    (* https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate *)
+    List.fold_left
+      (fun res trust_anchor ->
+        match res with
+        | Ok () ->
+            Diskuvbox.copy_file ~src:trust_anchor
+              ~dst:
+                Fpath.(
+                  msys2_dir / "etc" / "pki" / "ca-trust" / "source" / "anchors")
+              ()
+        | Error e -> Error e)
+      (Ok ()) trust_anchors
+
   (** [install_sh ~target] makes a copy of /bin/dash.exe
       to [target], and adds msys-2.0.dll if not present. *)
   let install_sh ~msys2_dir ~target =
@@ -228,38 +248,44 @@ module Installer = struct
     let* src_sh_opt = OS.Cmd.find_tool ~search (Cmd.v "dash") in
     match src_sh_opt with
     | None ->
-      Rresult.R.error_msg
-      @@ Fmt.str "Could not find dash.exe in %a"
-        Fmt.(Dump.list Fpath.pp)
-        search
+        Rresult.R.error_msg
+        @@ Fmt.str "Could not find dash.exe in %a"
+             Fmt.(Dump.list Fpath.pp)
+             search
     | Some src_sh ->
-      let target_dir = Fpath.parent target in
-      let* (_created : bool) = OS.Dir.create ~mode:0o750 target_dir in
-      Rresult.R.error_to_msg ~pp_error:Fmt.string
-        (let* () = install_msys2_dll_in_targetdir ~msys2_dir ~target_dir in
-         Diskuvbox.copy_file ~src:src_sh ~dst:target ())
+        let target_dir = Fpath.parent target in
+        let* (_created : bool) = OS.Dir.create ~mode:0o750 target_dir in
+        Rresult.R.error_to_msg ~pp_error:Fmt.string
+          (let* () = install_msys2_dll_in_targetdir ~msys2_dir ~target_dir in
+           Diskuvbox.copy_file ~src:src_sh ~dst:target ())
 
   let install_utilities t =
     let target_msys2_dir = Fpath.v t.target_msys2_dir in
     let sequence =
       let* () = install_msys2 t in
+      let* () =
+        Result.map_error Rresult.R.msg
+          (install_trust_anchors ~msys2_dir:target_msys2_dir
+             ~trust_anchors:t.trust_anchors)
+      in
       install_sh ~msys2_dir:target_msys2_dir ~target:(Fpath.v t.target_sh)
     in
     match sequence with
     | Ok () -> ()
     | Error e ->
-      Dkml_install_api.Forward_progress.stderr_fatallog ~id:"59391a58"
-        (Fmt.str "%a" Rresult.R.pp_msg e);
-      exit
-        (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
-           Exit_transient_failure)
+        Dkml_install_api.Forward_progress.stderr_fatallog ~id:"59391a58"
+          (Fmt.str "%a" Rresult.R.pp_msg e);
+        exit
+          (Dkml_install_api.Forward_progress.Exit_code.to_int_exitcode
+             Exit_transient_failure)
 end
 
 (** [install] runs the installation *)
 let install (_log_config : Dkml_install_api.Log_config.t) bits32 tmp_dir
-    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt =
+    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt trust_anchors =
   let installer =
-    Installer.create ~bits32 ~tmp_dir ~target_msys2_dir ~target_sh ~curl_exe_opt ~msys2_base_exe_opt
+    Installer.create ~bits32 ~tmp_dir ~target_msys2_dir ~target_sh ~curl_exe_opt
+      ~msys2_base_exe_opt ~trust_anchors
   in
   Installer.install_utilities installer
 
@@ -295,18 +321,34 @@ let target_sh_t =
   Arg.(required & opt (some string) None & info ~doc [ "target-sh" ])
 
 let curl_exe_opt_t =
-  let doc = "Location of curl.exe. Required only if --msys2-base-exe is not specified" in
+  let doc =
+    "Location of curl.exe. Required only if --msys2-base-exe is not specified"
+  in
   let v = Arg.(value & opt (some file) None & info ~doc [ "curl-exe" ]) in
   Term.(const (Option.map Fpath.v) $ v)
 
 let msys2_base_exe_opt_t =
-  let doc = "Location of msys2-base-ARCH-DATE.sfx.exe. If not specified, --curl-exe will be used to download MSYS2" in
+  let doc =
+    "Location of msys2-base-ARCH-DATE.sfx.exe. If not specified, --curl-exe \
+     will be used to download MSYS2"
+  in
   let v = Arg.(value & opt (some file) None & info ~doc [ "msys2-base-exe" ]) in
   Term.(const (Option.map Fpath.v) $ v)
+
+let trust_anchors_t =
+  let doc =
+    "Extra .pem or .cer file that will be trusted by MSYS2. Can be specified \
+     multiple times. MSYS2 detects MITM TLS interceptions that are common \
+     behind corporate firewalls. You can follow the procedure at \
+     https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate \
+     to get your corporate certificates"
+  in
+  let v = Arg.(value & opt_all file [] & info ~doc [ "trust-anchor" ]) in
+  Term.(const (List.map Fpath.v) $ v)
 
 let main_t =
   Term.(
     const install $ setup_log_t $ bits32_t $ tmp_dir_t $ target_msys2_dir_t
-    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t)
+    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ trust_anchors_t)
 
 let () = Term.(exit @@ eval (main_t, info "windows-install"))

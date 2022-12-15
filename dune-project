@@ -27,7 +27,11 @@
  (depends
   (dkml-install (>= 0.2.0))
   (digestif (>= 1.0.1))
-  (diskuvbox (>= 0.1.0))))
+  (diskuvbox (>= 0.1.0))
+  (sexplib (>= v0.14.0))
+  (bos (>= 0.2.1))
+  (alcotest (and (>= 1.4.0) :test))
+  (ppx_sexp_conv (>= v0.14.3))))
 
 (package
  (name dkml-component-network-unixutils)
