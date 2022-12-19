@@ -19,3 +19,9 @@ extra-source "dl/msys2-base-x86_64.sfx.exe" {
     "sha256=ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4"
   ]
 }
+pin-depends: [
+  [
+    "dkml-component-staging-confdkmldir.0.1.0"
+    "git+https://gitlab.com/diskuv-ocaml/components/dkml-component-desktop.git"
+  ]
+]

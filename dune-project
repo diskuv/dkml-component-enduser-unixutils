@@ -43,6 +43,7 @@
   (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1~))
   (dkml-component-staging-curl (>= 0.1.0))
+  (dkml-component-staging-confdkmldir (>= 0.1.0))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))
   ; We used to use `curly` but it buffers the file content in memory. MSYS2,
@@ -64,5 +65,6 @@
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1~))
+  (dkml-component-staging-confdkmldir (>= 0.1.0))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))))
