@@ -8,6 +8,7 @@ module Term = Cmdliner.Term
 
 module Installer = struct
   open Bos
+  open Unixutils_install_common
 
   let ( let* ) r f =
     match r with
@@ -44,12 +45,12 @@ module Installer = struct
     tmp_dir : string;
     target_sh : string;
     target_msys2_dir : string;
-    trust_anchors : Fpath.t list;
+    dkml_confdir_exe : Fpath.t;
     select_msys2 : select_msys2;
   }
 
   let create ~bits32 ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe_opt
-      ~msys2_base_exe_opt ~trust_anchors =
+      ~msys2_base_exe_opt ~dkml_confdir_exe =
     let select_msys2 =
       match (curl_exe_opt, msys2_base_exe_opt, bits32) with
       | _, Some msys2_base_exe, _ -> Use_msys2_base_exe msys2_base_exe
@@ -82,7 +83,7 @@ module Installer = struct
       tmp_dir;
       target_sh;
       target_msys2_dir;
-      trust_anchors;
+      dkml_confdir_exe;
       select_msys2;
     }
 
@@ -229,17 +230,30 @@ module Installer = struct
   (** [install_trust_anchors ~msys2_dir ~trust_anchors] *)
   let install_trust_anchors ~msys2_dir ~trust_anchors =
     (* https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate *)
-    List.fold_left
-      (fun res trust_anchor ->
-        match res with
-        | Ok () ->
-            Diskuvbox.copy_file ~src:trust_anchor
-              ~dst:
-                Fpath.(
-                  msys2_dir / "etc" / "pki" / "ca-trust" / "source" / "anchors")
-              ()
-        | Error e -> Error e)
-      (Ok ()) trust_anchors
+    let* () =
+      Result.map_error Rresult.R.msg
+        (List.fold_left
+           (fun res trust_anchor ->
+             match res with
+             | Ok () ->
+                 Diskuvbox.copy_file ~src:trust_anchor
+                   ~dst:
+                     Fpath.(
+                       msys2_dir / "etc" / "pki" / "ca-trust" / "source"
+                       / "anchors")
+                   ()
+             | Error e -> Error e)
+           (Ok ()) trust_anchors)
+    in
+    match trust_anchors with
+    | [] -> Ok ()
+    | _ ->
+        let update =
+          Fpath.(msys2_dir / "clang64" / "usr" / "bin" / "update-ca-trust")
+        in
+        Dkml_install_api.log_spawn_onerror_exit ~id:"dd58fe8b"
+          Cmd.(v (Fpath.to_string update));
+        Ok ()
 
   (** [install_sh ~target] makes a copy of /bin/dash.exe
       to [target], and adds msys-2.0.dll if not present. *)
@@ -263,10 +277,15 @@ module Installer = struct
     let target_msys2_dir = Fpath.v t.target_msys2_dir in
     let sequence =
       let* () = install_msys2 t in
+      let model_conf =
+        Model_conf.create_from_system_confdir
+          ~dkml_confdir_exe:t.dkml_confdir_exe
+      in
+      let trust_anchors =
+        List.map Fpath.v (Model_conf.trust_anchors model_conf)
+      in
       let* () =
-        Result.map_error Rresult.R.msg
-          (install_trust_anchors ~msys2_dir:target_msys2_dir
-             ~trust_anchors:t.trust_anchors)
+        install_trust_anchors ~msys2_dir:target_msys2_dir ~trust_anchors
       in
       install_sh ~msys2_dir:target_msys2_dir ~target:(Fpath.v t.target_sh)
     in
@@ -282,10 +301,11 @@ end
 
 (** [install] runs the installation *)
 let install (_log_config : Dkml_install_api.Log_config.t) bits32 tmp_dir
-    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt trust_anchors =
+    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt dkml_confdir_exe
+    =
   let installer =
     Installer.create ~bits32 ~tmp_dir ~target_msys2_dir ~target_sh ~curl_exe_opt
-      ~msys2_base_exe_opt ~trust_anchors
+      ~msys2_base_exe_opt ~dkml_confdir_exe
   in
   Installer.install_utilities installer
 
@@ -335,20 +355,16 @@ let msys2_base_exe_opt_t =
   let v = Arg.(value & opt (some file) None & info ~doc [ "msys2-base-exe" ]) in
   Term.(const (Option.map Fpath.v) $ v)
 
-let trust_anchors_t =
-  let doc =
-    "Extra .pem or .cer file that will be trusted by MSYS2. Can be specified \
-     multiple times. MSYS2 detects MITM TLS interceptions that are common \
-     behind corporate firewalls. You can follow the procedure at \
-     https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate \
-     to get your corporate certificates"
+let dkml_confdir_exe_t =
+  let doc = "The location of the dkml-confdir.exe" in
+  let v =
+    Arg.(required & opt (some file) None & info ~doc [ "dkml-confdir-exe" ])
   in
-  let v = Arg.(value & opt_all file [] & info ~doc [ "trust-anchor" ]) in
-  Term.(const (List.map Fpath.v) $ v)
+  Term.(const Fpath.v $ v)
 
 let main_t =
   Term.(
     const install $ setup_log_t $ bits32_t $ tmp_dir_t $ target_msys2_dir_t
-    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ trust_anchors_t)
+    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ dkml_confdir_exe_t)
 
 let () = Term.(exit @@ eval (main_t, info "windows-install"))

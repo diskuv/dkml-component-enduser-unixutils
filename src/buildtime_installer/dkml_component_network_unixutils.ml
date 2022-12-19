@@ -53,7 +53,12 @@ let register () =
       let component_name = "network-unixutils"
 
       let install_depends_on =
-        [ "staging-ocamlrun"; "staging-curl"; "staging-unixutils" ]
+        [
+          "staging-ocamlrun";
+          "staging-curl";
+          "staging-unixutils";
+          "staging-confdkmldir";
+        ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =

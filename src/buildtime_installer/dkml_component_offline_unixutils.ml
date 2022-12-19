@@ -18,6 +18,10 @@ let execute_install ctx =
         %% Log_config.to_args ctx.Context.log_config
         % "--tmp-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
+        % "--dkml-confdir-exe"
+        % Fpath.to_string
+            (ctx.Context.path_eval
+               "%{staging-dkmlconfdir:share-abi}%/bin/dkml-confdir")
         % "--target-msys2-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{prefix}%/tools/MSYS2")
         % "--target-sh"
@@ -25,7 +29,8 @@ let execute_install ctx =
             (ctx.Context.path_eval "%{prefix}%/tools/unixutils/bin/sh.exe")
         % "--msys2-base-exe"
         % Fpath.to_string
-            (ctx.Context.path_eval "%{offline-unixutils:share-abi}%/bin/msys2-base.sfx.exe")
+            (ctx.Context.path_eval
+               "%{offline-unixutils:share-abi}%/bin/msys2-base.sfx.exe")
         %%
         match ctx.Context.target_abi_v2 with
         | Windows_x86 -> v "--32-bit"
@@ -49,7 +54,8 @@ let register () =
 
       let component_name = "offline-unixutils"
 
-      let install_depends_on = [ "staging-ocamlrun"; "staging-unixutils" ]
+      let install_depends_on =
+        [ "staging-ocamlrun"; "staging-unixutils"; "staging-confdkmldir" ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =
