@@ -4,7 +4,7 @@ pin-depends: [
     "git+https://github.com/diskuv/dkml-component-curl.git"
   ]
   [
-    "dkml-component-staging-confdkmldir.0.1.0"
+    "dkml-component-staging-dkmlconfdir.0.1.0"
     "git+https://gitlab.com/diskuv-ocaml/components/dkml-component-desktop.git"
   ]
 ]

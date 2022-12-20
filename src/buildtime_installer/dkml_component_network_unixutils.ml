@@ -57,7 +57,7 @@ let register () =
           "staging-ocamlrun";
           "staging-curl";
           "staging-unixutils";
-          "staging-confdkmldir";
+          "staging-dkmlconfdir";
         ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t

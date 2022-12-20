@@ -55,7 +55,7 @@ let register () =
       let component_name = "offline-unixutils"
 
       let install_depends_on =
-        [ "staging-ocamlrun"; "staging-unixutils"; "staging-confdkmldir" ]
+        [ "staging-ocamlrun"; "staging-unixutils"; "staging-dkmlconfdir" ]
 
       let install_user_subcommand ~component_name:_ ~subcommand_name ~fl ~ctx_t
           =

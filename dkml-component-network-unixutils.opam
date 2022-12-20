@@ -16,7 +16,7 @@ depends: [
   "dkml-component-common-unixutils" {= version}
   "dkml-component-staging-ocamlrun" {>= "4.12.1~"}
   "dkml-component-staging-curl" {>= "0.1.0"}
-  "dkml-component-staging-confdkmldir" {>= "0.1.0"}
+  "dkml-component-staging-dkmlconfdir" {>= "0.1.0"}
   "dkml-install" {>= "0.2.0"}
   "diskuvbox" {>= "0.1.0"}
   "digestif" {>= "1.0.1"}
@@ -45,7 +45,7 @@ pin-depends: [
     "git+https://github.com/diskuv/dkml-component-curl.git"
   ]
   [
-    "dkml-component-staging-confdkmldir.0.1.0"
+    "dkml-component-staging-dkmlconfdir.0.1.0"
     "git+https://gitlab.com/diskuv-ocaml/components/dkml-component-desktop.git"
   ]
 ]
