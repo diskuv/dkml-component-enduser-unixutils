@@ -21,6 +21,10 @@ let execute_install ctx =
         %% Log_config.to_args ctx.Context.log_config
         % "--tmp-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
+        % "--dkml-confdir-exe"
+        % Fpath.to_string
+            (ctx.Context.path_eval
+               "%{staging-dkmlconfdir:share-abi}%/bin/dkml-confdir.exe")
         % "--target-msys2-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{prefix}%/tools/MSYS2")
         % "--target-sh"
