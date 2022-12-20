@@ -30,7 +30,7 @@
   (diskuvbox (>= 0.1.0))
   (sexplib (>= v0.14.0))
   (bos (>= 0.2.1))
-  (alcotest (and (>= 1.4.0) :test))
+  (alcotest (and (>= 1.4.0) :with-test))
   (ppx_sexp_conv (>= v0.14.3))))
 
 (package
