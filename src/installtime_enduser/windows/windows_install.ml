@@ -236,6 +236,8 @@ module Installer = struct
            (fun res trust_anchor ->
              match res with
              | Ok () ->
+                 Logs.info (fun l ->
+                     l "Using [trust_anchor %a]" Fpath.pp trust_anchor);
                  Diskuvbox.copy_file ~src:trust_anchor
                    ~dst:
                      Fpath.(
