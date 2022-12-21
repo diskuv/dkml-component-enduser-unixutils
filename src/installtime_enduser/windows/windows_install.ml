@@ -242,7 +242,8 @@ module Installer = struct
                    ~dst:
                      Fpath.(
                        msys2_dir / "etc" / "pki" / "ca-trust" / "source"
-                       / "anchors")
+                       / "anchors"
+                       / Fpath.basename trust_anchor)
                    ()
              | Error e -> Error e)
            (Ok ()) trust_anchors)
