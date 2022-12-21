@@ -251,11 +251,21 @@ module Installer = struct
     match trust_anchors with
     | [] -> Ok ()
     | _ ->
-        let update =
-          Fpath.(msys2_dir / "clang64" / "usr" / "bin" / "update-ca-trust")
+        let env = Fpath.(msys2_dir / "usr" / "bin" / "env.exe") in
+        let bindir = Fpath.(msys2_dir / "usr" / "bin") in
+        let update_ca_trust =
+          Fpath.(msys2_dir / "usr" / "bin" / "update-ca-trust")
         in
         Dkml_install_api.log_spawn_onerror_exit ~id:"dd58fe8b"
-          Cmd.(v (Fpath.to_string update));
+          Cmd.(
+            v (Fpath.to_string env)
+            % "MSYSTEM=MSYS" % "MSYSTEM_PREFIX=/usr"
+            % Fmt.str "PATH=%a" Fpath.pp bindir
+            % "dash"
+            % (match Logs.level () with
+              | Some Logs.Debug | Some Logs.Info -> "-eufx"
+              | _ -> "-euf")
+            % Fpath.to_string update_ca_trust);
         Ok ()
 
   (** [install_sh ~target] makes a copy of /bin/dash.exe
