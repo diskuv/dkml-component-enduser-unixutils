@@ -17,6 +17,7 @@
  (libraries
   dkml-install.register
   dkml-component-staging-ocamlrun.api
+  dkml-component-staging-dkmlconfdir.api
   dkml-component-common-unixutils
   bos
   logs))
@@ -28,6 +29,7 @@
  (libraries
   dkml-install.register
   dkml-component-staging-ocamlrun.api
+  dkml-component-staging-dkmlconfdir.api
   dkml-component-common-unixutils
   bos
   logs))

@@ -1,12 +1,25 @@
+(library
+ (name model_conf)
+ (libraries sexplib dkml-component-staging-dkmlconfdir.api)
+ (modules model_conf)
+ (preprocess
+  (pps ppx_sexp_conv)))
+
+(test
+ (name test_model_conf)
+ (libraries alcotest model_conf dkml-component-staging-dkmlconfdir.api)
+ (modules test_model_conf))
+
 (executable
  (package dkml-component-staging-unixutils)
  (name windows_install)
  (public_name windows_install)
+ (modules windows_install)
  (modes
   (byte exe))
  (libraries
   dkml-install.api
-  unixutils_install_common
+  dkml-component-staging-dkmlconfdir.api
   diskuvbox
   bos
   logs.cli
@@ -14,6 +27,7 @@
   fmt.cli
   fmt.tty
   cmdliner
+  model_conf
   ; want bytecode version of digestif ... but it is terribly slow for SHA256.
   ; TODO: let mix of bytecode and native code for install.
   digestif.ocaml

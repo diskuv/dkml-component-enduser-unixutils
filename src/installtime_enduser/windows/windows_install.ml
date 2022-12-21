@@ -8,7 +8,7 @@ module Term = Cmdliner.Term
 
 module Installer = struct
   open Bos
-  open Unixutils_install_common
+  open Staging_dkmlconfdir_api
 
   let ( let* ) r f =
     match r with
@@ -278,7 +278,7 @@ module Installer = struct
     let sequence =
       let* () = install_msys2 t in
       let model_conf =
-        Model_conf.create_from_system_confdir
+        Conf_loader.create_from_system_confdir ~unit_name:"unixutils"
           ~dkml_confdir_exe:t.dkml_confdir_exe
       in
       let trust_anchors =
@@ -356,7 +356,7 @@ let msys2_base_exe_opt_t =
   Term.(const (Option.map Fpath.v) $ v)
 
 let dkml_confdir_exe_t =
-  let doc = "The location of the dkml-confdir.exe" in
+  let doc = "The location of dkml-confdir.exe" in
   let v =
     Arg.(required & opt (some file) None & info ~doc [ "dkml-confdir-exe" ])
   in

@@ -1,4 +1,5 @@
-open Unixutils_install_common.Model_conf
+open Staging_dkmlconfdir_api.Conf_loader
+open Model_conf
 
 let sexp s = Sexplib.Sexp.of_string s
 
@@ -25,7 +26,7 @@ let () =
   let open Alcotest in
   run "model_conf"
     [
-      ( "basic",
+      ( "trust_anchors",
         [
           test_case "empty" `Quick test_empty;
           test_case "one" `Quick test_one_trust_anchor;
