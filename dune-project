@@ -30,8 +30,9 @@
   (diskuvbox (>= 0.1.0))
   (sexplib (>= v0.14.0))
   (bos (>= 0.2.1))
-  (alcotest (and (>= 1.4.0) :with-test))
-  (ppx_sexp_conv (>= v0.14.3))))
+  (dkml-component-staging-dkmlconfdir (>= 0.1.0))
+  (ppx_sexp_conv (>= v0.14.3))
+  (alcotest (and (>= 1.4.0) :with-test))))
 
 (package
  (name dkml-component-network-unixutils)
@@ -43,7 +44,6 @@
   (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1~))
   (dkml-component-staging-curl (>= 0.1.0))
-  (dkml-component-staging-dkmlconfdir (>= 0.1.0))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))
   ; We used to use `curly` but it buffers the file content in memory. MSYS2,
@@ -65,6 +65,5 @@
   (dkml-component-staging-unixutils (= :version))
   (dkml-component-common-unixutils (= :version))
   (dkml-component-staging-ocamlrun (>= 4.12.1~))
-  (dkml-component-staging-dkmlconfdir (>= 0.1.0))
   (dkml-install (>= 0.2.0))
   (diskuvbox (>= 0.1.0))))

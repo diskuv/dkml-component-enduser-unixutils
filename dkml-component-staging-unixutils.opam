@@ -17,8 +17,9 @@ depends: [
   "diskuvbox" {>= "0.1.0"}
   "sexplib" {>= "v0.14.0"}
   "bos" {>= "0.2.1"}
-  "alcotest" {>= "1.4.0" & with-test}
+  "dkml-component-staging-dkmlconfdir" {>= "0.1.0"}
   "ppx_sexp_conv" {>= "v0.14.3"}
+  "alcotest" {>= "1.4.0" & with-test}
   "odoc" {with-doc}
 ]
 build: [
