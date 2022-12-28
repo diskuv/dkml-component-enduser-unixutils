@@ -45,12 +45,13 @@ module Installer = struct
     tmp_dir : string;
     target_sh : string;
     target_msys2_dir : string;
+    msys2_keyring_sig_opt : Fpath.t option;
     dkml_confdir_exe : Fpath.t;
     select_msys2 : select_msys2;
   }
 
   let create ~bits32 ~tmp_dir ~target_sh ~target_msys2_dir ~curl_exe_opt
-      ~msys2_base_exe_opt ~dkml_confdir_exe =
+      ~msys2_base_exe_opt ~msys2_keyring_sig_opt ~dkml_confdir_exe =
     let select_msys2 =
       match (curl_exe_opt, msys2_base_exe_opt, bits32) with
       | _, Some msys2_base_exe, _ -> Use_msys2_base_exe msys2_base_exe
@@ -84,6 +85,7 @@ module Installer = struct
       target_sh;
       target_msys2_dir;
       dkml_confdir_exe;
+      msys2_keyring_sig_opt;
       select_msys2;
     }
 
@@ -227,6 +229,53 @@ module Installer = struct
            ~src:Fpath.(msys2_dir / "usr" / "bin" / "msys-2.0.dll")
            ~dst:dest ())
 
+  (** [install_key_ring ~msys2_dir] *)
+  let install_key_ring ~msys2_dir ~msys2_keyring_sig_opt =
+    match msys2_keyring_sig_opt with
+    | None -> Ok ()
+    | Some msys2_keyring_sig ->
+        (* https://www.msys2.org/news/#2020-06-29-new-packagers *)
+        (* https://stackoverflow.com/questions/68669920/invalid-pgp-signature-when-updating-packages-in-msys2-despite-fixes/70088371#70088371 *)
+        let msys2_keyring = Fpath.(rem_ext msys2_keyring_sig) in
+        let env = Fpath.(msys2_dir / "usr" / "bin" / "env.exe") in
+        let bindir = Fpath.(msys2_dir / "usr" / "bin") in
+        let pacman_key = Fpath.(msys2_dir / "usr" / "bin" / "pacman-key") in
+        let pacman = Fpath.(msys2_dir / "usr" / "bin" / "pacman.exe") in
+        (*    create home directory files *)
+        Dkml_install_api.log_spawn_onerror_exit ~id:"e1b0144c"
+          Cmd.(
+            v (Fpath.to_string env)
+            % "MSYSTEM=MSYS" % "MSYSTEM_PREFIX=/usr"
+            % Fmt.str "PATH=%a" Fpath.pp bindir
+            % "bash" % "-lc" % "true");
+        Dkml_install_api.log_spawn_onerror_exit ~id:"fe922b1c"
+          Cmd.(
+            v (Fpath.to_string env)
+            % "MSYSTEM=MSYS" % "MSYSTEM_PREFIX=/usr"
+            % Fmt.str "PATH=%a" Fpath.pp bindir
+            % "bash" % "-ef" % Fpath.to_string pacman_key % "--init"
+            % Fpath.to_string msys2_keyring_sig);
+        Dkml_install_api.log_spawn_onerror_exit ~id:"1212f7d5"
+          Cmd.(
+            v (Fpath.to_string env)
+            % "MSYSTEM=MSYS" % "MSYSTEM_PREFIX=/usr"
+            % Fmt.str "PATH=%a" Fpath.pp bindir
+            % "bash" % "-ef" % Fpath.to_string pacman_key % "--populate"
+            % "msys2");
+        Dkml_install_api.log_spawn_onerror_exit ~id:"709455f6"
+          Cmd.(
+            v (Fpath.to_string env)
+            % "MSYSTEM=MSYS" % "MSYSTEM_PREFIX=/usr"
+            % Fmt.str "PATH=%a" Fpath.pp bindir
+            % "bash" % "-ef" % Fpath.to_string pacman_key % "--verify"
+            % Fpath.to_string msys2_keyring_sig);
+        Dkml_install_api.log_spawn_onerror_exit ~id:"db6b3868"
+          Cmd.(
+            v (Fpath.to_string pacman)
+            % "-U" % "--noconfirm"
+            % Fpath.to_string msys2_keyring);
+        Ok ()
+
   (** [install_trust_anchors ~msys2_dir ~trust_anchors] *)
   let install_trust_anchors ~msys2_dir ~trust_anchors =
     (* https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate *)
@@ -300,6 +349,10 @@ module Installer = struct
       let* () =
         install_trust_anchors ~msys2_dir:target_msys2_dir ~trust_anchors
       in
+      let* () =
+        install_key_ring ~msys2_dir:target_msys2_dir
+          ~msys2_keyring_sig_opt:t.msys2_keyring_sig_opt
+      in
       install_sh ~msys2_dir:target_msys2_dir ~target:(Fpath.v t.target_sh)
     in
     match sequence with
@@ -314,11 +367,11 @@ end
 
 (** [install] runs the installation *)
 let install (_log_config : Dkml_install_api.Log_config.t) bits32 tmp_dir
-    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt dkml_confdir_exe
-    =
+    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt
+    msys2_keyring_sig_opt dkml_confdir_exe =
   let installer =
     Installer.create ~bits32 ~tmp_dir ~target_msys2_dir ~target_sh ~curl_exe_opt
-      ~msys2_base_exe_opt ~dkml_confdir_exe
+      ~msys2_base_exe_opt ~msys2_keyring_sig_opt ~dkml_confdir_exe
   in
   Installer.install_utilities installer
 
@@ -368,6 +421,17 @@ let msys2_base_exe_opt_t =
   let v = Arg.(value & opt (some file) None & info ~doc [ "msys2-base-exe" ]) in
   Term.(const (Option.map Fpath.v) $ v)
 
+let msys2_keyring_sig_opt_t =
+  let doc =
+    "Location of msys2-keyring-any.pkg.tar.zst.sig (anything that ends with \
+     .sig). The data file (the filename without .sig) must also be present in \
+     the same directory. If not specified, no keyring will be installed"
+  in
+  let v =
+    Arg.(value & opt (some file) None & info ~doc [ "msys2-keyring-sig" ])
+  in
+  Term.(const (Option.map Fpath.v) $ v)
+
 let dkml_confdir_exe_t =
   let doc = "The location of dkml-confdir.exe" in
   let v =
@@ -378,6 +442,7 @@ let dkml_confdir_exe_t =
 let main_t =
   Term.(
     const install $ setup_log_t $ bits32_t $ tmp_dir_t $ target_msys2_dir_t
-    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ dkml_confdir_exe_t)
+    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t
+    $ msys2_keyring_sig_opt_t $ dkml_confdir_exe_t)
 
 let () = Term.(exit @@ eval (main_t, info "windows-install"))

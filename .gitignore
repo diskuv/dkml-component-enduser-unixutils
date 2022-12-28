@@ -17,3 +17,6 @@ _build/
 
 #   direnv (https://direnv.net/)
 .envrc
+
+# Dune local files
+/dune-workspace
