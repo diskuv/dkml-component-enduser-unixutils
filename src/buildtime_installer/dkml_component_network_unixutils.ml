@@ -34,10 +34,7 @@ let execute_install ctx =
         %%
         match ctx.Context.target_abi_v2 with
         | Windows_x86 ->
-            v "--32-bit" % "--msys2-keyring-sig"
-            % Fpath.to_string
-                (ctx.Context.path_eval
-                   "%{offline-unixutils:share-abi}%/share/msys2-keyring-any.pkg.tar.zst.sig")
+            v "--32-bit"
         | _ -> empty)
   else
     Staging_ocamlrun_api.spawn_ocamlrun ctx

@@ -44,46 +44,20 @@ install: [
   ["diskuvbox" "copy-file"
       "dl/msys2-base-x86_64.sfx.exe"
       "%{_:share}%/staging-files/windows_x86_64/bin/msys2-base.sfx.exe"]
-  # keyring
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst.sig"
-      "%{_:share}%/staging-files/windows_x86/share/msys2-keyring-any.pkg.tar.zst.sig"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst"
-      "%{_:share}%/staging-files/windows_x86/share/msys2-keyring-any.pkg.tar.zst"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst.sig"
-      "%{_:share}%/staging-files/windows_x86_64/share/msys2-keyring-any.pkg.tar.zst.sig"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst"
-      "%{_:share}%/staging-files/windows_x86_64/share/msys2-keyring-any.pkg.tar.zst"]
 ]
-# 32-bit
+# msys2-dkml-base binary assets
+# - version: 0.1.0
+# - package: https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/packages/11844984
 extra-source "dl/msys2-base-i686.sfx.exe" {
-  # https://github.com/msys2/msys2-installer/releases/tag/nightly-i686 (deprecated!)
-  src: "https://github.com/msys2/msys2-installer/releases/download/nightly-i686/msys2-base-i686-20210705.sfx.exe"
+  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65363829/download"
   checksum: [
-    "sha256=29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05"
+    "sha256=904b0a1e4104f29bf1636cee2aa2bb52e49b20421504454eb07892bb34cbbc1c"
   ]
 }
-# 64-bit
 extra-source "dl/msys2-base-x86_64.sfx.exe" {
-  src: "https://github.com/msys2/msys2-installer/releases/download/2022-01-28/msys2-base-x86_64-20220128.sfx.exe"
+  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65363835/download"
   checksum: [
-    "sha256=ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4"
-  ]
-}
-# keyring for older 32-bit installer with outdated keyring
-extra-source "dl/msys2-keyring-any.pkg.tar.zst.sig" {
-  src: "https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20221024-1-any.pkg.tar.zst.sig"
-  checksum: [
-    "sha256=146ac70bb80ce5fb7bb3c2eade6dbbc698ca53c9f2b1c0eb9f19e6272f49b015"
-  ]
-}
-extra-source "dl/msys2-keyring-any.pkg.tar.zst" {
-  src: "https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20221024-1-any.pkg.tar.zst"
-  checksum: [
-    "sha256=e90fb4413f6056dbc8b2df9eac670924aa2851151bc97569e7df12c928acc209"
+    "sha256=fce2401df97d4b7126a2d5f1b3d68bce725802dc05875ed248a02cc60f33bedc"
   ]
 }
 pin-depends: [
