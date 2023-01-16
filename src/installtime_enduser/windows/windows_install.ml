@@ -26,9 +26,8 @@ module Installer = struct
 
   type download_msys2 = {
     curl_exe : Fpath.t;
-    msys2_setup_exe_basename : string;
-    msys2_sz : int;
-    msys2_url_path : string;
+    msys2_estimated_sz : int;
+    msys2_dkml_base_package_file : string;
     msys2_sha256 : string;
   }
 
@@ -55,26 +54,24 @@ module Installer = struct
       match (curl_exe_opt, msys2_base_exe_opt, bits32) with
       | _, Some msys2_base_exe, _ -> Use_msys2_base_exe msys2_base_exe
       | Some curl_exe, _, true ->
-          (* 32-bit (DEPRECATED!) *)
+          (* 32-bit *)
           Download_msys2
             {
               curl_exe;
-              msys2_setup_exe_basename = "msys2-base-i686-20210705.sfx.exe";
-              msys2_url_path = "nightly-i686/msys2-base-i686-20210705.sfx.exe";
-              msys2_sz = 72909299;
+              msys2_dkml_base_package_file = "65422464";
+              msys2_estimated_sz = 64_950 * 1024;
               msys2_sha256 =
-                "29b4c44b3f65bc0b496b8a9753bdebdc7ec61935db0d3dd09d89f1659e763d05";
+                "8a31ef2bcb0f3b9a820e15abe1d75bd1477577f9c218453377296e4f430693a0";
             }
       | Some curl_exe, _, false ->
           (* 64-bit *)
           Download_msys2
             {
               curl_exe;
-              msys2_setup_exe_basename = "msys2-base-x86_64-20220128.sfx.exe";
-              msys2_url_path = "2022-01-28/msys2-base-x86_64-20220128.sfx.exe";
-              msys2_sz = 70183704;
+              msys2_dkml_base_package_file = "65422459";
+              msys2_estimated_sz = 76_240 * 1024;
               msys2_sha256 =
-                "ac6aa4e96af36a5ae207e683963b270eb8cecd7e26d29b48241b5d43421805d4";
+                "06977504e0a35b6662d952e59c26e730a191478ff99cb27b2b7886d6605ed787";
             }
       | _ -> failwith "Either --msys2-base-exe or --curl-exe must be specified"
     in
@@ -87,7 +84,7 @@ module Installer = struct
       select_msys2;
     }
 
-  let download_file ~curl_exe ~url ~destfile expected_cksum expected_sz =
+  let download_file ~curl_exe ~url ~destfile expected_cksum estimated_sz =
     Logs.info (fun m -> m "Downloading %s" url);
     (* Write to a temporary file because, especially on 32-bit systems,
        the RAM to hold the file may overflow. And why waste memory on 64-bit?
@@ -133,7 +130,7 @@ module Installer = struct
                   if !sofar mod one_mb = 0 then
                     Logs.info (fun l ->
                         l "Verified %d of %d MB" (!sofar / one_mb)
-                          (expected_sz / one_mb));
+                          (estimated_sz / one_mb));
                   feedloop (f ())
               | None -> Digestif.SHA256.get !actual_cksum_ctx
             in
@@ -171,17 +168,23 @@ module Installer = struct
     in
     let* destfile =
       match select_msys2 with
-      | Download_msys2 { curl_exe; msys2_url_path; msys2_sha256; msys2_sz; _ }
-        ->
+      | Download_msys2
+          {
+            curl_exe;
+            msys2_dkml_base_package_file;
+            msys2_sha256;
+            msys2_estimated_sz;
+            _;
+          } ->
           let destfile = Fpath.(v tmp_dir / "msys2.exe") in
           let url =
-            "https://github.com/msys2/msys2-installer/releases/download/"
-            ^ msys2_url_path
+            "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/"
+            ^ msys2_dkml_base_package_file ^ "/download"
           in
           let* () =
             download_file ~curl_exe ~url ~destfile
               (Digestif.SHA256.of_hex msys2_sha256)
-              msys2_sz
+              msys2_estimated_sz
           in
           Ok destfile
       | Use_msys2_base_exe msys2_base_exe -> Ok msys2_base_exe
@@ -314,8 +317,8 @@ end
 
 (** [install] runs the installation *)
 let install (_log_config : Dkml_install_api.Log_config.t) bits32 tmp_dir
-    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt
-    dkml_confdir_exe =
+    target_msys2_dir target_sh curl_exe_opt msys2_base_exe_opt dkml_confdir_exe
+    =
   let installer =
     Installer.create ~bits32 ~tmp_dir ~target_msys2_dir ~target_sh ~curl_exe_opt
       ~msys2_base_exe_opt ~dkml_confdir_exe
@@ -378,7 +381,6 @@ let dkml_confdir_exe_t =
 let main_t =
   Term.(
     const install $ setup_log_t $ bits32_t $ tmp_dir_t $ target_msys2_dir_t
-    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t
-    $ dkml_confdir_exe_t)
+    $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ dkml_confdir_exe_t)
 
 let () = Term.(exit @@ eval (main_t, info "windows-install"))

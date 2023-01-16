@@ -8,18 +8,19 @@ install: [
       "%{_:share}%/staging-files/windows_x86_64/bin/msys2-base.sfx.exe"]
 ]
 # msys2-dkml-base binary assets
-# - version: 0.1.0
-# - package: https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/packages/11844984
+# - sop: also change src/installtime_enduser/windows/windows_install.ml [create]
+# - version: 0.1.1
+# - package: https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/packages/11856887
 extra-source "dl/msys2-base-i686.sfx.exe" {
-  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65363829/download"
+  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65422464/download"
   checksum: [
-    "sha256=904b0a1e4104f29bf1636cee2aa2bb52e49b20421504454eb07892bb34cbbc1c"
+    "sha256=8a31ef2bcb0f3b9a820e15abe1d75bd1477577f9c218453377296e4f430693a0"
   ]
 }
 extra-source "dl/msys2-base-x86_64.sfx.exe" {
-  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65363835/download"
+  src: "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/65422459/download"
   checksum: [
-    "sha256=fce2401df97d4b7126a2d5f1b3d68bce725802dc05875ed248a02cc60f33bedc"
+    "sha256=06977504e0a35b6662d952e59c26e730a191478ff99cb27b2b7886d6605ed787"
   ]
 }
 pin-depends: [
