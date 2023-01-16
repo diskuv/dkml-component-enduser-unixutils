@@ -1,31 +1,3 @@
-install: [
-  # keyring
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst.sig"
-      "%{_:share}%/staging-files/windows_x86/share/msys2-keyring-any.pkg.tar.zst.sig"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst"
-      "%{_:share}%/staging-files/windows_x86/share/msys2-keyring-any.pkg.tar.zst"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst.sig"
-      "%{_:share}%/staging-files/windows_x86_64/share/msys2-keyring-any.pkg.tar.zst.sig"]
-  ["diskuvbox" "copy-file"
-      "dl/msys2-keyring-any.pkg.tar.zst"
-      "%{_:share}%/staging-files/windows_x86_64/share/msys2-keyring-any.pkg.tar.zst"]
-]
-# keyring for older 32-bit installer with outdated keyring
-extra-source "dl/msys2-keyring-any.pkg.tar.zst.sig" {
-  src: "https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20221024-1-any.pkg.tar.zst.sig"
-  checksum: [
-    "sha256=146ac70bb80ce5fb7bb3c2eade6dbbc698ca53c9f2b1c0eb9f19e6272f49b015"
-  ]
-}
-extra-source "dl/msys2-keyring-any.pkg.tar.zst" {
-  src: "https://repo.msys2.org/msys/x86_64/msys2-keyring-1~20221024-1-any.pkg.tar.zst"
-  checksum: [
-    "sha256=e90fb4413f6056dbc8b2df9eac670924aa2851151bc97569e7df12c928acc209"
-  ]
-}
 pin-depends: [
   [
     "dkml-component-staging-curl.0.2.0"
