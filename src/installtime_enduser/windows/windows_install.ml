@@ -1,9 +1,5 @@
-(* Cmdliner 1.0 -> 1.1 deprecated a lot of things. But until Cmdliner 1.1
-   is in common use in Opam packages we should provide backwards compatibility.
-   In fact, Diskuv OCaml is not even using Cmdliner 1.1. *)
-[@@@alert "-deprecated"]
-
 module Arg = Cmdliner.Arg
+module Cmd = Cmdliner.Cmd
 module Term = Cmdliner.Term
 
 module Installer = struct
@@ -383,4 +379,4 @@ let main_t =
     const install $ setup_log_t $ bits32_t $ tmp_dir_t $ target_msys2_dir_t
     $ target_sh_t $ curl_exe_opt_t $ msys2_base_exe_opt_t $ dkml_confdir_exe_t)
 
-let () = Term.(exit @@ eval (main_t, info "windows-install"))
+let () = exit (Cmd.eval (Cmd.v (Cmd.info "windows-install") main_t))
