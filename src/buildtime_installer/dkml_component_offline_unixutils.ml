@@ -1,21 +1,15 @@
-(* Cmdliner 1.0 -> 1.1 deprecated a lot of things. But until Cmdliner 1.1
-   is in common use in Opam packages we should provide backwards compatibility.
-   In fact, Diskuv OCaml is not even using Cmdliner 1.1. *)
-[@@@alert "-deprecated"]
-
 open Dkml_install_api
 open Dkml_install_register
-open Bos
 
 let execute_install ctx =
   if Context.Abi_v2.is_windows ctx.Context.target_abi_v2 then
     Staging_ocamlrun_api.spawn_ocamlrun ctx
-      Cmd.(
+      Bos.Cmd.(
         v
           (Fpath.to_string
              (ctx.Context.path_eval
                 "%{staging-unixutils:share-generic}%/windows_install.bc"))
-        %% Log_config.to_args ctx.Context.log_config
+        %% of_list (Array.to_list (Log_config.to_args ctx.Context.log_config))
         % "--tmp-dir"
         % Fpath.to_string (ctx.Context.path_eval "%{tmp}%")
         % "--dkml-confdir-exe"
@@ -31,12 +25,11 @@ let execute_install ctx =
                "%{offline-unixutils:share-abi}%/bin/msys2-base.sfx.exe")
         %%
         match ctx.Context.target_abi_v2 with
-        | Windows_x86 ->
-            v "--32-bit"
+        | Windows_x86 -> v "--32-bit"
         | _ -> empty)
   else
     Staging_ocamlrun_api.spawn_ocamlrun ctx
-      Cmd.(
+      Bos.Cmd.(
         v
           (Fpath.to_string
              (ctx.Context.path_eval
@@ -60,16 +53,18 @@ let register () =
           =
         let doc = "Install Unix utilities" in
         Dkml_install_api.Forward_progress.Continue_progress
-          ( Cmdliner.Term.
-              (const execute_install $ ctx_t, info subcommand_name ~doc),
+          ( Cmdliner.Cmd.v
+              (Cmdliner.Cmd.info subcommand_name ~doc)
+              Cmdliner.Term.(const execute_install $ ctx_t),
             fl )
 
       let uninstall_user_subcommand ~component_name:_ ~subcommand_name ~fl
           ~ctx_t =
         let doc = "Uninstall Unix utilities" in
         Dkml_install_api.Forward_progress.Continue_progress
-          ( Cmdliner.Term.
-              ( const Dkml_component_common_unixutils.execute_uninstall $ ctx_t,
-                info subcommand_name ~doc ),
+          ( Cmdliner.Cmd.v
+              (Cmdliner.Cmd.info subcommand_name ~doc)
+              Cmdliner.Term.(
+                const Dkml_component_common_unixutils.execute_uninstall $ ctx_t),
             fl )
     end)
