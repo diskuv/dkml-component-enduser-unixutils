@@ -174,7 +174,7 @@ module Installer = struct
           } ->
           let destfile = Fpath.(v tmp_dir / "msys2.exe") in
           let url =
-            "https://gitlab.com/diskuv-ocaml/distributions/msys2-dkml-base/-/package_files/"
+            "https://gitlab.com/dkml/distributions/msys2-dkml-base/-/package_files/"
             ^ msys2_dkml_base_package_file ^ "/download"
           in
           let* () =
