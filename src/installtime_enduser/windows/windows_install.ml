@@ -80,6 +80,23 @@ module Installer = struct
       select_msys2;
     }
 
+  let portable_delete_file target_fp =
+    let ( let* ) = Result.bind in
+    (* [doc from diskuvbox]
+       [tracks https://github.com/dbuenzli/bos/issues/98]
+       For Windows, can't write without turning off read-only flag.
+       In fact, you can still get Permission Denied even after turning
+       off read-only flag, perhaps because Windows has a richer
+       permissions model than POSIX. So we remove the file
+       after turning off read-only *)
+    if Sys.win32 then
+      let* exists = OS.File.exists target_fp in
+      if exists then
+        let* () = OS.Path.Mode.set target_fp 0o644 in
+        OS.File.delete target_fp
+      else Ok ()
+    else OS.File.delete target_fp
+
   let download_file ~curl_exe ~url ~destfile expected_cksum estimated_sz =
     Logs.info (fun m -> m "Downloading %s" url);
     (* Write to a temporary file because, especially on 32-bit systems,
@@ -145,7 +162,7 @@ module Installer = struct
     in
     Fun.protect
       ~finally:(fun () ->
-        match OS.File.delete tmpfile with
+        match portable_delete_file tmpfile with
         | Ok () -> ()
         | Error msg ->
             (* Only WARN since this is inside a Fun.protect *)
